@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MsalService } from '@azure/msal-angular';
+import { RedirectRequest } from '@azure/msal-browser';
 
 @Component({
   selector: 'app-login',
@@ -14,5 +15,13 @@ export class LoginComponent {
 
   iniciarSesion() {
     this.msalService.loginRedirect();
+  }
+
+  crearCuenta() {
+    const signUpRequest: RedirectRequest = {
+      scopes: ['user.read'],
+      prompt: 'create',
+    };
+    this.msalService.loginRedirect(signUpRequest);
   }
 }
