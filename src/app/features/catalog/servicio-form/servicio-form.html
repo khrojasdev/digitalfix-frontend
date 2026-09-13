@@ -1,0 +1,63 @@
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()">
+  <h3>{{ editando ? 'Editar servicio' : 'Nuevo servicio' }}</h3>
+
+  @if (guardando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Guardando"></mat-progress-bar>
+  }
+
+  <div class="campos">
+    <mat-form-field appearance="outline">
+      <mat-label>Codigo</mat-label>
+      <input matInput formControlName="codigo" maxlength="30" />
+      @if (formulario.controls.codigo.hasError('required')) {
+        <mat-error>El codigo es obligatorio.</mat-error>
+      }
+      @if (formulario.controls.codigo.hasError('maxlength')) {
+        <mat-error>Como maximo 30 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="nombre" maxlength="120" />
+      @if (formulario.controls.nombre.hasError('required')) {
+        <mat-error>El nombre es obligatorio.</mat-error>
+      }
+      @if (formulario.controls.nombre.hasError('maxlength')) {
+        <mat-error>Como maximo 120 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tarifa</mat-label>
+      <input matInput type="number" formControlName="tarifa" min="0.01" step="0.01" />
+      <span matTextPrefix>$&nbsp;</span>
+      @if (formulario.controls.tarifa.hasError('required')) {
+        <mat-error>La tarifa es obligatoria.</mat-error>
+      }
+      @if (formulario.controls.tarifa.hasError('min')) {
+        <mat-error>La tarifa debe ser mayor que cero.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="ancho-completo">
+      <mat-label>Descripcion</mat-label>
+      <textarea matInput formControlName="descripcion" rows="2" maxlength="500"></textarea>
+      @if (formulario.controls.descripcion.hasError('maxlength')) {
+        <mat-error>Como maximo 500 caracteres.</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (error(); as mensaje) {
+    <p class="error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="acciones">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="guardando()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="guardando()">
+      <mat-icon>save</mat-icon>
+      Guardar
+    </button>
+  </div>
+</form>
