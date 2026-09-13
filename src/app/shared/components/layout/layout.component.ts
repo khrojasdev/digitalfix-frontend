@@ -9,6 +9,7 @@ import { MatListModule } from '@angular/material/list';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { MsalService } from '@azure/msal-angular';
 
 @Component({
   selector: 'app-layout',
@@ -27,9 +28,14 @@ import { Observable } from 'rxjs';
 })
 export class LayoutComponent {
   private breakpointObserver = inject(BreakpointObserver);
+  private msalService = inject(MsalService);
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map((result) => result.matches),
     shareReplay(),
   );
+
+  cerrarSesion() {
+    this.msalService.logoutRedirect();
+  }
 }

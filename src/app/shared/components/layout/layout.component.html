@@ -22,6 +22,14 @@
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
       <span>Gestión de Operaciones</span>
+
+      <!-- Espaciador para empujar el botón a la derecha -->
+      <span class="spacer"></span>
+
+      <!-- Botón de cierre de sesión -->
+      <button mat-icon-button aria-label="Cerrar sesión" (click)="cerrarSesion()">
+        <mat-icon>logout</mat-icon>
+      </button>
     </mat-toolbar>
     <main class="content-padding">
       <router-outlet></router-outlet>
