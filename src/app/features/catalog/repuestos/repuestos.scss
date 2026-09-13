@@ -1,0 +1,50 @@
+.tarjeta-repuestos {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.separador {
+  flex: 1 1 auto;
+}
+
+.contenedor-tabla {
+  overflow-x: auto;
+}
+
+.tabla-repuestos {
+  width: 100%;
+  min-width: 680px;
+}
+
+.derecha {
+  text-align: right;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  margin: 1rem 0;
+}
+
+.aviso {
+  color: var(--mat-sys-primary);
+  margin: 0.5rem 0 1rem;
+}
+
+.vacio {
+  color: var(--mat-sys-on-surface-variant);
+  margin: 1.5rem 0;
+}
+
+.confirmar {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-right: 0.25rem;
+}
