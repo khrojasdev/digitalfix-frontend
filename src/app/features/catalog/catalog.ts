@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
 import { CatalogoService } from './catalogo.service';
 import { Servicio } from './catalogo.models';
 import { mensajeDeError } from './mensaje-error';
+import { ServicioForm } from './servicio-form/servicio-form';
 
 /**
  * Listado del catalogo de servicios de la empresa del usuario.
@@ -29,6 +30,7 @@ import { mensajeDeError } from './mensaje-error';
     MatPaginatorModule,
     MatSlideToggleModule,
     RouterLink,
+    ServicioForm,
   ],
   templateUrl: './catalog.html',
   styleUrl: './catalog.scss',
@@ -36,7 +38,14 @@ import { mensajeDeError } from './mensaje-error';
 export class Catalog implements OnInit {
   private catalogo = inject(CatalogoService);
 
-  protected readonly columnas = ['codigo', 'nombre', 'descripcion', 'tarifa', 'estado'];
+  protected readonly columnas = [
+    'codigo',
+    'nombre',
+    'descripcion',
+    'tarifa',
+    'estado',
+    'acciones',
+  ];
 
   protected readonly servicios = signal<Servicio[]>([]);
   protected readonly cargando = signal(false);
@@ -45,6 +54,12 @@ export class Catalog implements OnInit {
   protected readonly pagina = signal(0);
   protected readonly tamano = signal(20);
   protected readonly soloActivos = signal(true);
+
+  /** null y formulario cerrado = nadie edita; null y abierto = alta. */
+  protected readonly formularioAbierto = signal(false);
+  protected readonly enEdicion = signal<Servicio | null>(null);
+  protected readonly confirmando = signal<number | null>(null);
+  protected readonly aviso = signal<string | null>(null);
 
   ngOnInit(): void {
     this.cargar();
@@ -80,6 +95,51 @@ export class Catalog implements OnInit {
     this.soloActivos.set(soloActivos);
     this.pagina.set(0);
     this.cargar();
+  }
+
+  protected nuevo(): void {
+    this.enEdicion.set(null);
+    this.formularioAbierto.set(true);
+    this.aviso.set(null);
+  }
+
+  protected editar(servicio: Servicio): void {
+    this.enEdicion.set(servicio);
+    this.formularioAbierto.set(true);
+    this.aviso.set(null);
+  }
+
+  protected cerrarFormulario(): void {
+    this.formularioAbierto.set(false);
+    this.enEdicion.set(null);
+  }
+
+  protected alGuardar(servicio: Servicio): void {
+    this.aviso.set(`Servicio ${servicio.codigo} guardado.`);
+    this.cerrarFormulario();
+    this.cargar();
+  }
+
+  protected pedirConfirmacion(servicio: Servicio): void {
+    this.confirmando.set(servicio.id);
+  }
+
+  protected cancelarConfirmacion(): void {
+    this.confirmando.set(null);
+  }
+
+  /** En el catalogo nada se borra: se desactiva, porque otros servicios
+      pueden estar referenciando este identificador. */
+  protected desactivar(servicio: Servicio): void {
+    this.confirmando.set(null);
+    this.error.set(null);
+    this.catalogo.desactivarServicio(servicio.id).subscribe({
+      next: () => {
+        this.aviso.set(`Servicio ${servicio.codigo} desactivado.`);
+        this.cargar();
+      },
+      error: (e) => this.error.set(mensajeDeError(e, 'desactivar el servicio')),
+    });
   }
 
   protected moneda(valor: number): string {

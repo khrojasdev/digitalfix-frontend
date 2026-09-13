@@ -1,0 +1,33 @@
+.formulario {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+h3 {
+  margin: 0 0 0.75rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.25rem 1rem;
+}
+
+.ancho-completo {
+  grid-column: 1 / -1;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  margin: 0 0 0.75rem;
+}
