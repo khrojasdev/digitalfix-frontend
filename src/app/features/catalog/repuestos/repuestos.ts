@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 
@@ -22,6 +23,7 @@ import { RepuestoForm } from './repuesto-form';
     MatIconModule,
     MatProgressBarModule,
     MatPaginatorModule,
+    MatSlideToggleModule,
     RouterLink,
     RepuestoForm,
   ],
@@ -45,11 +47,22 @@ export class Repuestos implements OnInit {
   protected readonly enEdicion = signal<Repuesto | null>(null);
   protected readonly confirmando = signal<number | null>(null);
 
+  /** Cuando esta activo se consulta el endpoint de bajo minimo, que ademas
+      viene ordenado por stock ascendente: lo mas urgente arriba. */
+  protected readonly soloBajoMinimo = signal(false);
+  protected readonly cuantosBajoMinimo = signal(0);
+
   ngOnInit(): void {
     this.cargar();
   }
 
   protected cargar(): void {
+    if (this.soloBajoMinimo()) {
+      // cargarBajoMinimo ya deja el contador al dia; no se pide dos veces
+      this.cargarBajoMinimo();
+      return;
+    }
+    this.contarBajoMinimo();
     this.cargando.set(true);
     this.error.set(null);
     this.catalogo.listarRepuestos(this.pagina(), this.tamano()).subscribe({
@@ -65,6 +78,40 @@ export class Repuestos implements OnInit {
         this.cargando.set(false);
       },
     });
+  }
+
+  private cargarBajoMinimo(): void {
+    this.cargando.set(true);
+    this.error.set(null);
+    this.catalogo.repuestosBajoMinimo().subscribe({
+      next: (lista) => {
+        this.repuestos.set(lista);
+        this.total.set(lista.length);
+        this.cuantosBajoMinimo.set(lista.length);
+        this.cargando.set(false);
+      },
+      error: (e) => {
+        this.error.set(mensajeDeError(e, 'cargar los repuestos bajo su minimo'));
+        this.repuestos.set([]);
+        this.total.set(0);
+        this.cargando.set(false);
+      },
+    });
+  }
+
+  /** El aviso se muestra siempre, se este filtrando o no: es el punto de
+      HU-19, que la persona se entere sin tener que ir a buscarlo. */
+  private contarBajoMinimo(): void {
+    this.catalogo.repuestosBajoMinimo().subscribe({
+      next: (lista) => this.cuantosBajoMinimo.set(lista.length),
+      error: () => this.cuantosBajoMinimo.set(0),
+    });
+  }
+
+  protected alternarBajoMinimo(activo: boolean): void {
+    this.soloBajoMinimo.set(activo);
+    this.pagina.set(0);
+    this.cargar();
   }
 
   protected cambiarPagina(evento: PageEvent): void {
