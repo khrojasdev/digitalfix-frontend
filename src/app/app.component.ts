@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
+import { SessionService } from './core/auth/session.service';
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,7 @@ import { MsalService } from '@azure/msal-angular';
 })
 export class AppComponent implements OnInit {
   private msalService = inject(MsalService);
+  private sessionService = inject(SessionService); // Instancia el servicio en el arranque
 
   ngOnInit(): void {
     this.msalService.handleRedirectObservable().subscribe({
