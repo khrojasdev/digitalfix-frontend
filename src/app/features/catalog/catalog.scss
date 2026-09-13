@@ -1,0 +1,66 @@
+.tarjeta-catalogo {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.separador {
+  flex: 1 1 auto;
+}
+
+/* Las tablas anchas se desplazan dentro de su contenedor, no obligan a
+   desplazar la pagina entera en pantalla estrecha. */
+.contenedor-tabla {
+  overflow-x: auto;
+}
+
+.tabla-servicios {
+  width: 100%;
+  min-width: 640px;
+}
+
+.derecha {
+  text-align: right;
+}
+
+.etiqueta {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.78rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  color: var(--mat-sys-primary);
+}
+
+.etiqueta.inactivo {
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.error {
+  color: var(--mat-sys-error);
+  margin: 1rem 0;
+}
+
+.vacio {
+  color: var(--mat-sys-on-surface-variant);
+  margin: 1.5rem 0;
+}
+
+.aviso {
+  color: var(--mat-sys-primary);
+  margin: 0.5rem 0 1rem;
+}
+
+.confirmar {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-right: 0.25rem;
+}

@@ -6,7 +6,15 @@ export const routes: Routes = [
     path: '',
     component: LayoutComponent,
     children: [
-      // Aquí cargaremos los componentes de features más adelante
+      {
+        path: 'catalog',
+        loadComponent: () => import('./features/catalog/catalog').then((m) => m.Catalog),
+      },
+      {
+        path: 'catalog/repuestos',
+        loadComponent: () =>
+          import('./features/catalog/repuestos/repuestos').then((m) => m.Repuestos),
+      },
     ],
   },
 ];
