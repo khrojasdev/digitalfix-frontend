@@ -30,6 +30,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/catalog/repuestos/repuestos').then((m) => m.Repuestos),
       },
+      {
+        path: 'acceso-denegado',
+        loadComponent: () =>
+          import('./features/auth/access-denied/access-denied.component').then(
+            (m) => m.AccessDeniedComponent,
+          ),
+      },
     ],
   },
   {
