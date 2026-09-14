@@ -1,0 +1,112 @@
+.encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.subtitulo {
+  margin: 4px 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+/* Se adapta solo: cuatro indicadores en ancho, dos o uno cuando no caben. */
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.indicador mat-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.etiqueta {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.cifra {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.nota {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* El color solo aparece cuando hay algo que mirar: si todo está bien, las
+   cuatro tarjetas se ven iguales y no compiten por la atención. */
+.indicador.atencion {
+  border-left: 4px solid #b45309;
+}
+
+.indicador.critico {
+  border-left: 4px solid #b91c1c;
+}
+
+.indicador.critico .cifra {
+  color: #b91c1c;
+}
+
+.panel-doble {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.tabla {
+  width: 100%;
+}
+
+.derecha {
+  text-align: right;
+}
+
+.falta {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.vacio {
+  color: rgba(0, 0, 0, 0.6);
+  margin: 8px 0;
+}
+
+.error {
+  color: #b91c1c;
+  margin: 12px 0;
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.datos dt {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.datos dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}

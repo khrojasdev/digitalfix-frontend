@@ -54,6 +54,14 @@ export class CatalogoService {
     return this.api.delete<void>(`${CatalogoService.SERVICIOS}/${id}`);
   }
 
+  /**
+   * Deshace una baja. Devuelve el servicio ya actualizado, asi que quien
+   * llama puede refrescar la fila sin volver a pedir el listado entero.
+   */
+  reactivarServicio(id: number): Observable<Servicio> {
+    return this.api.post<Servicio>(`${CatalogoService.SERVICIOS}/${id}/activate`, {});
+  }
+
   repuestosDe(idServicio: number): Observable<RepuestoDeServicioRespuesta[]> {
     return this.api.get<RepuestoDeServicioRespuesta[]>(
       `${CatalogoService.SERVICIOS}/${idServicio}/parts`,

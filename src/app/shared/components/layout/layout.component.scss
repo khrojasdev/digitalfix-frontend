@@ -3,18 +3,125 @@
 }
 
 .sidenav {
-  width: 250px;
+  width: 260px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
+
+/* ----------------------------------------------------------------- la marca */
+
+.logo-kcd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #1e3a8a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  /* Sin esto las tres letras se ven apelmazadas a este tamaño. */
+  letter-spacing: 1.5px;
+}
+
+.marca-lateral {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.marca-nombre {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.logo-barra {
+  /* En la barra superior el fondo ya es azul: el recuadro se invierte para
+     que el logo no desaparezca dentro de él. */
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  margin-right: 12px;
+}
+
+/* ------------------------------------------------------------- barra superior */
 
 .top-toolbar {
-  background-color: var(--df-primary);
-  color: white;
+  background-color: var(--df-primary, #1e3a8a);
+  color: #fff;
+  gap: 4px;
 }
 
-.content-padding {
-  padding: 24px;
+.titulo-barra {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .spacer {
   flex: 1 1 auto;
+}
+
+.perfil {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+  margin-right: 12px;
+}
+
+.perfil-nombre {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.perfil-empresa {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.boton-salir {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* En pantallas angostas el botón se queda solo con el icono: el texto es lo
+   primero que sobra cuando el espacio aprieta. */
+@media (max-width: 599px) {
+  .texto-salir,
+  .titulo-barra,
+  .perfil {
+    display: none;
+  }
+}
+
+/* ----------------------------------------------------------------- el menú */
+
+a[mat-list-item].activo {
+  background: rgba(30, 58, 138, 0.1);
+  font-weight: 600;
+}
+
+.pendiente {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pronto {
+  margin-left: auto;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+
+.content-padding {
+  padding: 24px;
 }
