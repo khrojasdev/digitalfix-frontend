@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './shared/components/layout/layout.component';
 import { LoginComponent } from './features/auth/login/login.component';
-import { authGuard } from './core/auth/guards/auth-guard'; // <-- Importa tu nuevo guard
+import { authGuard } from './core/auth/guards/auth-guard';
+import { roleGuard } from './core/auth/guards/role-guard';
 
 export const routes: Routes = [
   {
@@ -11,7 +12,7 @@ export const routes: Routes = [
   {
     path: '',
     component: LayoutComponent,
-    canActivate: [authGuard], // <-- Reemplaza MsalGuard por authGuard
+    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -24,6 +25,8 @@ export const routes: Routes = [
       },
       {
         path: 'catalog/repuestos',
+        canActivate: [roleGuard], // <-- Aplicamos el guard de roles
+        data: { roles: ['TECNICO', 'SUPERVISOR', 'ADMIN'] }, // <-- Roles autorizados
         loadComponent: () =>
           import('./features/catalog/repuestos/repuestos').then((m) => m.Repuestos),
       },
