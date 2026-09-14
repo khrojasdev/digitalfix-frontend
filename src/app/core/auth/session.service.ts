@@ -42,6 +42,16 @@ export class SessionService {
       });
   }
 
+  /**
+   * Los roles que trae el token, que puede ser ninguno: Entra solo incluye el
+   * claim `roles` si hay app roles asignados en el registro de la aplicacion.
+   * La fuente de verdad de los roles es APP_USER, y llega por /api/me; esto
+   * es solo el respaldo. Ver AuthContextService.roles$.
+   */
+  public rolesDelToken(): string[] {
+    return this.currentUserSubject.value?.roles ?? [];
+  }
+
   public hasRole(role: string): boolean {
     const user = this.currentUserSubject.value;
     return user ? user.roles.includes(role) : false;

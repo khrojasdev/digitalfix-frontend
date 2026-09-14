@@ -3,41 +3,101 @@
                [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
                [mode]="(isHandset$ | async) ? 'over' : 'side'"
                [opened]="(isHandset$ | async) === false">
-    <mat-toolbar>DigitalFix</mat-toolbar>
+    <div class="marca-lateral">
+      <span class="logo-kcd">KCD</span>
+      <span class="marca-nombre">DigitalFix</span>
+    </div>
+
     <mat-nav-list>
-      <a mat-list-item routerLink="/dashboard" *ngIf="sessionService.hasAnyRole(['SUPERVISOR', 'ADMIN'])">Dashboard</a>
-      <a mat-list-item routerLink="/workorders" *ngIf="sessionService.hasAnyRole(['TECNICO', 'SUPERVISOR', 'ADMIN'])">Órdenes de Trabajo</a>
-      <a mat-list-item routerLink="/catalog" *ngIf="sessionService.hasAnyRole(['TECNICO', 'SUPERVISOR', 'ADMIN'])">Catálogo</a>
-      <a mat-list-item routerLink="/audit" *ngIf="sessionService.hasRole('ADMIN')">Auditoría</a>
+      <!--
+        Los enlaces se filtran por el rol que devuelve /api/me, no por el del
+        token. Con el token, `roles` llegaba vacío y este menú se dibujaba sin
+        una sola entrada.
+      -->
+      @if (puedeVerPanel$ | async) {
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="activo">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Panel</span>
+        </a>
+      }
+
+      @if (puedeVerCatalogo$ | async) {
+        <a mat-list-item routerLink="/catalog" routerLinkActive="activo"
+           [routerLinkActiveOptions]="{ exact: true }">
+          <mat-icon matListItemIcon>design_services</mat-icon>
+          <span matListItemTitle>Catálogo</span>
+        </a>
+
+        <a mat-list-item routerLink="/catalog/repuestos" routerLinkActive="activo">
+          <mat-icon matListItemIcon>inventory_2</mat-icon>
+          <span matListItemTitle>Repuestos</span>
+        </a>
+      }
+
+      <mat-divider></mat-divider>
+
+      <!--
+        Estas dos son de otras historias y todavía no tienen pantalla. Se
+        muestran apagadas en vez de ocultarse: así se ve la forma completa de
+        la aplicación sin ofrecer un enlace que lleva a ninguna parte.
+      -->
+      <div mat-list-item class="pendiente" aria-disabled="true">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Órdenes de trabajo</span>
+        <span class="pronto">pronto</span>
+      </div>
+
+      @if (puedeAuditar$ | async) {
+        <div mat-list-item class="pendiente" aria-disabled="true">
+          <mat-icon matListItemIcon>fact_check</mat-icon>
+          <span matListItemTitle>Auditoría</span>
+          <span class="pronto">pronto</span>
+        </div>
+      }
     </mat-nav-list>
   </mat-sidenav>
+
   <mat-sidenav-content>
     <mat-toolbar class="top-toolbar">
       <button
         type="button"
-        aria-label="Toggle sidenav"
+        aria-label="Mostrar u ocultar el menú"
         mat-icon-button
         (click)="drawer.toggle()"
         *ngIf="isHandset$ | async">
-        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+        <mat-icon>menu</mat-icon>
       </button>
-      <span>Gestión de Operaciones</span>
 
-      <span class="spacer" style="flex: 1 1 auto;"></span>
+      <span class="logo-kcd logo-barra">KCD</span>
+      <span class="titulo-barra">Gestión de Operaciones</span>
 
-      <!-- Bloque del Perfil del Usuario -->
-      <div style="display: flex; align-items: center; gap: 16px;" *ngIf="authContext.profile$ | async as profile">
-        <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
-          <span style="font-weight: 500; font-size: 14px;">{{ profile.name }}</span>
-          <span style="font-size: 12px; color: rgba(0,0,0,0.6);">{{ profile.companyName }}</span>
+      <span class="spacer"></span>
+
+      <!--
+        El perfil puede no llegar; el botón de salir tiene que estar igual.
+        Antes ambos vivían dentro del mismo *ngIf, así que un /api/me caído
+        dejaba a la persona sin forma de cerrar sesión.
+      -->
+      @if (authContext.profile$ | async; as profile) {
+        <div class="perfil">
+          <span class="perfil-nombre">{{ profile.name }}</span>
+          @if (profile.companyName) {
+            <span class="perfil-empresa">{{ profile.companyName }}</span>
+          }
         </div>
+      }
 
-        <button mat-icon-button aria-label="Cerrar sesión" (click)="cerrarSesion()" color="warn">
-          <mat-icon>logout</mat-icon>
-        </button>
-      </div>
-
+      <button
+        mat-stroked-button
+        type="button"
+        class="boton-salir"
+        aria-label="Cerrar sesión"
+        (click)="cerrarSesion()">
+        <mat-icon>logout</mat-icon>
+        <span class="texto-salir">Cerrar sesión</span>
+      </button>
     </mat-toolbar>
+
     <main class="content-padding">
       <router-outlet></router-outlet>
     </main>

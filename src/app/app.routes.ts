@@ -15,9 +15,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
+        // Al catalogo y no al panel: el panel esta cerrado a CLIENTE, y
+        // mandar a alguien a una pantalla que su rol no puede ver significa
+        // que entra a la aplicacion y lo primero que lee es "acceso denegado".
         path: '',
         redirectTo: '/catalog',
         pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR'] },
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
         path: 'catalog',

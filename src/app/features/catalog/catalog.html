@@ -12,6 +12,10 @@
         Solo activos
       </mat-slide-toggle>
 
+      @if (soloActivos()) {
+        <span class="pista">Apaga el interruptor para ver y reactivar los dados de baja.</span>
+      }
+
       <span class="separador"></span>
 
       <button mat-flat-button type="button" (click)="nuevo()">
@@ -106,8 +110,19 @@
                     mat-icon-button
                     type="button"
                     aria-label="Desactivar servicio"
+                    matTooltip="Dar de baja"
                     (click)="pedirConfirmacion(s)">
                     <mat-icon>block</mat-icon>
+                  </button>
+                } @else {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="reactivar"
+                    aria-label="Reactivar servicio"
+                    matTooltip="Volver a poner en circulación"
+                    (click)="reactivar(s)">
+                    <mat-icon>restart_alt</mat-icon>
                   </button>
                 }
               }

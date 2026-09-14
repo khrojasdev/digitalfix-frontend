@@ -1,1 +1,145 @@
-<p>dashboard works!</p>
+<header class="encabezado">
+  <div>
+    <h1>Panel</h1>
+    @if (authContext.profile$ | async; as perfil) {
+      <p class="subtitulo">
+        {{ perfil.companyName || 'Tu empresa' }} · {{ perfil.name }}
+      </p>
+    }
+  </div>
+
+  <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
+    <mat-icon>refresh</mat-icon>
+    Actualizar
+  </button>
+</header>
+
+@if (cargando()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Cargando el panel"></mat-progress-bar>
+}
+
+@if (error(); as mensaje) {
+  <p class="error" role="alert">{{ mensaje }}</p>
+}
+
+@if (!cargando() && !error()) {
+  <section class="tarjetas" aria-label="Resumen del catálogo">
+    <mat-card class="indicador">
+      <mat-card-content>
+        <span class="etiqueta">Servicios activos</span>
+        <span class="cifra">{{ serviciosActivos() }}</span>
+        <span class="nota">de {{ totalServicios() }} en el catálogo</span>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="indicador" [class.atencion]="serviciosInactivos() > 0">
+      <mat-card-content>
+        <span class="etiqueta">Servicios dados de baja</span>
+        <span class="cifra">{{ serviciosInactivos() }}</span>
+        <span class="nota">
+          @if (serviciosInactivos() > 0) {
+            se pueden reactivar desde el catálogo
+          } @else {
+            ninguno
+          }
+        </span>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="indicador">
+      <mat-card-content>
+        <span class="etiqueta">Repuestos</span>
+        <span class="cifra">{{ totalRepuestos() }}</span>
+        <span class="nota">referencias en bodega</span>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="indicador" [class.critico]="bajoMinimo().length > 0">
+      <mat-card-content>
+        <span class="etiqueta">Bajo stock mínimo</span>
+        <span class="cifra">{{ bajoMinimo().length }}</span>
+        <span class="nota">
+          @if (bajoMinimo().length > 0) {
+            requieren reposición
+          } @else {
+            todo en nivel
+          }
+        </span>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <section class="panel-doble">
+    <mat-card class="bloque">
+      <mat-card-header>
+        <mat-card-title>Repuestos a reponer</mat-card-title>
+        <mat-card-subtitle>Stock igual o por debajo del mínimo</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (bajoMinimo().length === 0) {
+          <p class="vacio">Ningún repuesto está bajo su mínimo.</p>
+        } @else {
+          <table mat-table [dataSource]="bajoMinimo()" class="tabla">
+            <ng-container matColumnDef="sku">
+              <th mat-header-cell *matHeaderCellDef>SKU</th>
+              <td mat-cell *matCellDef="let r">{{ r.sku }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Nombre</th>
+              <td mat-cell *matCellDef="let r">{{ r.nombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="stock">
+              <th mat-header-cell *matHeaderCellDef class="derecha">Stock</th>
+              <td mat-cell *matCellDef="let r" class="derecha falta">{{ r.stock }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="stockMinimo">
+              <th mat-header-cell *matHeaderCellDef class="derecha">Mínimo</th>
+              <td mat-cell *matCellDef="let r" class="derecha">{{ r.stockMinimo }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasStock"></tr>
+            <tr mat-row *matRowDef="let fila; columns: columnasStock"></tr>
+          </table>
+        }
+      </mat-card-content>
+
+      <mat-card-actions>
+        <a mat-button routerLink="/catalog/repuestos">
+          <mat-icon>inventory_2</mat-icon>
+          Ir a repuestos
+        </a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="bloque">
+      <mat-card-header>
+        <mat-card-title>Catálogo</mat-card-title>
+        <mat-card-subtitle>Lo que tu empresa puede ofrecer hoy</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <dl class="datos">
+          <dt>Valor de los servicios activos</dt>
+          <dd>{{ moneda(valorCatalogo()) }}</dd>
+
+          <dt>Servicios publicados</dt>
+          <dd>{{ serviciosActivos() }}</dd>
+
+          <dt>Servicios fuera de circulación</dt>
+          <dd>{{ serviciosInactivos() }}</dd>
+        </dl>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <a mat-button routerLink="/catalog">
+          <mat-icon>design_services</mat-icon>
+          Ir al catálogo
+        </a>
+      </mat-card-actions>
+    </mat-card>
+  </section>
+}

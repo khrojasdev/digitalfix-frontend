@@ -6,6 +6,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
 import { CatalogoService } from './catalogo.service';
@@ -29,6 +30,7 @@ import { ServicioForm } from './servicio-form/servicio-form';
     MatProgressBarModule,
     MatPaginatorModule,
     MatSlideToggleModule,
+    MatTooltipModule,
     RouterLink,
     ServicioForm,
   ],
@@ -139,6 +141,25 @@ export class Catalog implements OnInit {
         this.cargar();
       },
       error: (e) => this.error.set(mensajeDeError(e, 'desactivar el servicio')),
+    });
+  }
+
+  /**
+   * Deshace una baja.
+   *
+   * No pide confirmacion, al reves que desactivar: reactivar no destruye
+   * nada y si alguien se equivoca, el boton de al lado lo revierte. Pedir
+   * confirmacion para algo reversible solo entrena a la gente a decir que si
+   * sin leer.
+   */
+  protected reactivar(servicio: Servicio): void {
+    this.error.set(null);
+    this.catalogo.reactivarServicio(servicio.id).subscribe({
+      next: () => {
+        this.aviso.set(`Servicio ${servicio.codigo} reactivado.`);
+        this.cargar();
+      },
+      error: (e) => this.error.set(mensajeDeError(e, 'reactivar el servicio')),
     });
   }
 
