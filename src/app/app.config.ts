@@ -4,22 +4,27 @@ import {
   importProvidersFrom,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
 import { routes } from './app.routes';
 import { msalConfig } from './core/auth/msal.config';
 
-import { MsalModule, MsalGuard } from '@azure/msal-angular'; // <-- Importa MsalGuard
+import { MsalModule, MsalGuard, MsalInterceptor } from '@azure/msal-angular'; // <-- MsalInterceptor
 import { PublicClientApplication, InteractionType } from '@azure/msal-browser';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideClientHydration(withEventReplay()), // <-- Tu configuración original conservada
-    provideHttpClient(),
-    MsalGuard, // <-- Registra el guardián globalmente
+    provideClientHydration(withEventReplay()),
+    provideHttpClient(withInterceptorsFromDi()), // <-- Habilita interceptores clásicos
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MsalInterceptor, // <-- Registra el interceptor de MSAL
+      multi: true,
+    },
+    MsalGuard,
     importProvidersFrom(
       MsalModule.forRoot(
         new PublicClientApplication(msalConfig),
@@ -29,7 +34,10 @@ export const appConfig: ApplicationConfig = {
         },
         {
           interactionType: InteractionType.Redirect,
-          protectedResourceMap: new Map(),
+          protectedResourceMap: new Map([
+            // Inyecta el token solo cuando la URL coincida con tu BFF
+            ['http://localhost:8080/api/*', ['api://CLIENT_ID_PENDIENTE/access_as_user']],
+          ]),
         },
       ),
     ),
