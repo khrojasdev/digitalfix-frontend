@@ -1,14 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { AccessDeniedComponent } from './access-denied.component';
 
-describe('AccessDenied', () => {
+// La plantilla usa routerLink, y routerLink necesita una ruta activa.
+describe('AccessDeniedComponent', () => {
   let component: AccessDeniedComponent;
   let fixture: ComponentFixture<AccessDeniedComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AccessDeniedComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AccessDeniedComponent);
@@ -16,7 +19,7 @@ describe('AccessDenied', () => {
     await fixture.whenStable();
   });
 
-  it('should create', () => {
+  it('se crea', () => {
     expect(component).toBeTruthy();
   });
 });
