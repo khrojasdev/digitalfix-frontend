@@ -5,10 +5,17 @@
                [opened]="(isHandset$ | async) === false">
     <mat-toolbar>DigitalFix</mat-toolbar>
     <mat-nav-list>
-      <a mat-list-item routerLink="/dashboard">Dashboard</a>
-      <a mat-list-item routerLink="/workorders">Órdenes de Trabajo</a>
-      <a mat-list-item routerLink="/catalog">Catálogo</a>
-      <a mat-list-item routerLink="/audit">Auditoría</a>
+      <!-- Dashboard: Supervisores y Administradores -->
+      <a mat-list-item routerLink="/dashboard" *ngIf="sessionService.hasAnyRole(['SUPERVISOR', 'ADMIN'])">Dashboard</a>
+
+      <!-- Órdenes de Trabajo: Operativos, Supervisores y Administradores -->
+      <a mat-list-item routerLink="/workorders" *ngIf="sessionService.hasAnyRole(['TECNICO', 'SUPERVISOR', 'ADMIN'])">Órdenes de Trabajo</a>
+
+      <!-- Catálogo: Operativos, Supervisores y Administradores -->
+      <a mat-list-item routerLink="/catalog" *ngIf="sessionService.hasAnyRole(['TECNICO', 'SUPERVISOR', 'ADMIN'])">Catálogo</a>
+
+      <!-- Auditoría: Estrictamente Administradores -->
+      <a mat-list-item routerLink="/audit" *ngIf="sessionService.hasRole('ADMIN')">Auditoría</a>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
