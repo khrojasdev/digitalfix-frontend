@@ -5,16 +5,9 @@
                [opened]="(isHandset$ | async) === false">
     <mat-toolbar>DigitalFix</mat-toolbar>
     <mat-nav-list>
-      <!-- Dashboard: Supervisores y Administradores -->
       <a mat-list-item routerLink="/dashboard" *ngIf="sessionService.hasAnyRole(['SUPERVISOR', 'ADMIN'])">Dashboard</a>
-
-      <!-- Órdenes de Trabajo: Operativos, Supervisores y Administradores -->
       <a mat-list-item routerLink="/workorders" *ngIf="sessionService.hasAnyRole(['TECNICO', 'SUPERVISOR', 'ADMIN'])">Órdenes de Trabajo</a>
-
-      <!-- Catálogo: Operativos, Supervisores y Administradores -->
       <a mat-list-item routerLink="/catalog" *ngIf="sessionService.hasAnyRole(['TECNICO', 'SUPERVISOR', 'ADMIN'])">Catálogo</a>
-
-      <!-- Auditoría: Estrictamente Administradores -->
       <a mat-list-item routerLink="/audit" *ngIf="sessionService.hasRole('ADMIN')">Auditoría</a>
     </mat-nav-list>
   </mat-sidenav>
@@ -30,13 +23,20 @@
       </button>
       <span>Gestión de Operaciones</span>
 
-      <!-- Espaciador para empujar el botón a la derecha -->
-      <span class="spacer"></span>
+      <span class="spacer" style="flex: 1 1 auto;"></span>
 
-      <!-- Botón de cierre de sesión -->
-      <button mat-icon-button aria-label="Cerrar sesión" (click)="cerrarSesion()">
-        <mat-icon>logout</mat-icon>
-      </button>
+      <!-- Bloque del Perfil del Usuario -->
+      <div style="display: flex; align-items: center; gap: 16px;" *ngIf="authContext.profile$ | async as profile">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
+          <span style="font-weight: 500; font-size: 14px;">{{ profile.name }}</span>
+          <span style="font-size: 12px; color: rgba(0,0,0,0.6);">{{ profile.companyName }}</span>
+        </div>
+
+        <button mat-icon-button aria-label="Cerrar sesión" (click)="cerrarSesion()" color="warn">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+
     </mat-toolbar>
     <main class="content-padding">
       <router-outlet></router-outlet>

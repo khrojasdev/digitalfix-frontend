@@ -1,14 +1,25 @@
-<div class="login-container">
-  <h1>Bienvenido a DigitalFix</h1>
-  <p>Gestión de Operaciones Corporativas</p>
+<div class="login-wrapper">
+  <mat-card class="login-card">
+    <mat-card-header style="display: flex; flex-direction: column; align-items: center;">
+      <mat-icon class="brand-icon">engineering</mat-icon>
+      <mat-card-title style="font-size: 24px; font-weight: bold;">DigitalFix</mat-card-title>
+      <mat-card-subtitle>Gestión de Operaciones</mat-card-subtitle>
+    </mat-card-header>
 
-  <div class="action-buttons">
-    <button mat-raised-button color="primary" (click)="iniciarSesion()">
-      Iniciar Sesión
-    </button>
+    <mat-card-content>
+      <p>Bienvenido al portal corporativo. Por favor, identifícate para acceder al sistema.</p>
+    </mat-card-content>
 
-    <button mat-stroked-button (click)="crearCuenta()">
-      Crear cuenta
-    </button>
-  </div>
+    <mat-card-actions style="display: flex; flex-direction: column; padding: 0 16px;">
+      <button mat-flat-button color="primary" class="login-button" (click)="iniciarSesion()">
+        <mat-icon>login</mat-icon>
+        Iniciar Sesión
+      </button>
+
+      <button mat-stroked-button color="primary" class="signup-button" (click)="crearCuenta()">
+        <mat-icon>person_add</mat-icon>
+        Crear Cuenta
+      </button>
+    </mat-card-actions>
+  </mat-card>
 </div>
