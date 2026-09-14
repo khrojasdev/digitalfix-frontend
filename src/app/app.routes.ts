@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-import { MsalGuard } from '@azure/msal-angular';
 import { LayoutComponent } from './shared/components/layout/layout.component';
 import { LoginComponent } from './features/auth/login/login.component';
+import { authGuard } from './core/auth/guards/auth-guard'; // <-- Importa tu nuevo guard
 
 export const routes: Routes = [
   {
@@ -11,7 +11,7 @@ export const routes: Routes = [
   {
     path: '',
     component: LayoutComponent,
-    canActivate: [MsalGuard], // <-- Bloquea el acceso si no hay sesión
+    canActivate: [authGuard], // <-- Reemplaza MsalGuard por authGuard
     children: [
       {
         path: '',
