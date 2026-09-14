@@ -9,6 +9,7 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 
 import { routes } from './app.routes';
 import { msalConfig } from './core/auth/msal.config';
+import { environment } from '../environments/environment'; // <-- Importa el entorno
 
 import { MsalModule, MsalGuard, MsalInterceptor } from '@azure/msal-angular'; // <-- MsalInterceptor
 import { PublicClientApplication, InteractionType } from '@azure/msal-browser';
@@ -36,7 +37,8 @@ export const appConfig: ApplicationConfig = {
         {
           interactionType: InteractionType.Redirect,
           protectedResourceMap: new Map([
-            ['http://localhost:8080/api/*', ['api://CLIENT_ID_PENDIENTE/access_as_user']],
+            // Usa la variable de entorno concatenada con el comodín de MSAL
+            [`${environment.apiUrl}/*`, ['api://CLIENT_ID_PENDIENTE/access_as_user']],
           ]),
         },
       ),
