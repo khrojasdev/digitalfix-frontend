@@ -1,23 +1,32 @@
 import { TestBed } from '@angular/core/testing';
-import { AppComponent } from './app.component';
+import { provideRouter } from '@angular/router';
 
+import { AppComponent } from './app.component';
+import { proveedoresMsalDePrueba } from '../testing/msal-doble';
+
+// AppComponent depende de MsalService, MsalBroadcastService y Router. Sin
+// proveerlos, el spec fallaba con NG0201 antes de probar nada.
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideRouter([]), ...proveedoresMsalDePrueba()],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('se crea', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('solo monta el router-outlet', async () => {
+    // La plantilla es unicamente <router-outlet>: todo lo que se ve lo pone
+    // la ruta activa. El spec anterior buscaba el titulo del andamio de
+    // Angular, que ya no existe.
     const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, digitalfix-frontend');
+
+    const html = (fixture.nativeElement as HTMLElement).innerHTML;
+    expect(html).toContain('router-outlet');
   });
 });

@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.midominio.com/api', // Se reemplazará con la URL real de AWS/Azure
+  // Sin /api al final: cada servicio ya arma su ruta completa
+  // (por ejemplo 'api/catalog/services'). Si se dejara aqui, se duplicaria.
+  apiUrl: 'https://api.midominio.com',
 };

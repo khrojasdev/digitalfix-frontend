@@ -25,8 +25,11 @@ export const routes: Routes = [
       },
       {
         path: 'catalog/repuestos',
-        canActivate: [roleGuard], // <-- Aplicamos el guard de roles
-        data: { roles: ['TECNICO', 'SUPERVISOR', 'ADMIN'] }, // <-- Roles autorizados
+        canActivate: [roleGuard],
+        // Los roles del caso son ADMIN, SUPERVISOR, CLIENTE y AUDITOR. TECNICO
+        // no existe: dejarlo aqui no abria nada, pero la lista quedaba sin los
+        // roles que si tienen que entrar a repuestos.
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR'] },
         loadComponent: () =>
           import('./features/catalog/repuestos/repuestos').then((m) => m.Repuestos),
       },

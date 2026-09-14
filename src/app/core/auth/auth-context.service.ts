@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { switchMap, shareReplay } from 'rxjs/operators';
+import { catchError, shareReplay, switchMap } from 'rxjs/operators';
 import { SessionService } from './session.service';
 import { environment } from '../../../environments/environment';
 
@@ -28,8 +28,13 @@ export class AuthContextService {
       if (!session) {
         return of(null);
       }
-      // Si hay sesión, consultamos al BFF
-      return this.http.get<UserProfile>(`${environment.apiUrl}/me`);
+      // Si hay sesión, consultamos al BFF. La ruta es /api/me: sin el prefijo
+      // no la atiende nadie.
+      return this.http.get<UserProfile>(`${environment.apiUrl}/api/me`).pipe(
+        // Que el perfil falle no puede dejar la cabecera sin nombre ni la
+        // aplicación sin menú: se degrada a null y las pantallas siguen.
+        catchError(() => of(null)),
+      );
     }),
     // El 1 indica que guarde en caché la última respuesta y se la entregue a los nuevos suscriptores
     shareReplay(1),
