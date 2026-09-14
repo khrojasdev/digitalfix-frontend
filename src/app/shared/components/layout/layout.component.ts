@@ -10,7 +10,8 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MsalService } from '@azure/msal-angular';
-import { SessionService } from '../../../core/auth/session.service'; // <-- Importado
+import { SessionService } from '../../../core/auth/session.service';
+import { AuthContextService } from '../../../core/auth/auth-context.service'; // <-- Importado
 
 @Component({
   selector: 'app-layout',
@@ -31,8 +32,8 @@ export class LayoutComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private msalService = inject(MsalService);
 
-  // Inyectado y público para que el HTML pueda consultarlo
   public sessionService = inject(SessionService);
+  public authContext = inject(AuthContextService); // <-- Inyectado públicamente
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map((result) => result.matches),
