@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { MsalGuard } from '@azure/msal-angular';
 import { LayoutComponent } from './shared/components/layout/layout.component';
 import { LoginComponent } from './features/auth/login/login.component';
 
@@ -10,10 +11,11 @@ export const routes: Routes = [
   {
     path: '',
     component: LayoutComponent,
+    canActivate: [MsalGuard], // <-- Bloquea el acceso si no hay sesión
     children: [
       {
         path: '',
-        redirectTo: '/catalog', // <-- Barra añadida
+        redirectTo: '/catalog',
         pathMatch: 'full',
       },
       {
@@ -29,6 +31,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/catalog', // <-- Barra añadida
+    redirectTo: '/catalog',
   },
 ];
