@@ -30,12 +30,12 @@ export const appConfig: ApplicationConfig = {
         new PublicClientApplication(msalConfig),
         {
           interactionType: InteractionType.Redirect,
-          authRequest: { scopes: ['user.read'] },
+          // Cambiamos 'user.read' por el scope de tu API
+          authRequest: { scopes: ['api://CLIENT_ID_PENDIENTE/access_as_user'] },
         },
         {
           interactionType: InteractionType.Redirect,
           protectedResourceMap: new Map([
-            // Inyecta el token solo cuando la URL coincida con tu BFF
             ['http://localhost:8080/api/*', ['api://CLIENT_ID_PENDIENTE/access_as_user']],
           ]),
         },
