@@ -79,7 +79,7 @@ export class Catalog implements OnInit {
           this.cargando.set(false);
         },
         error: (e) => {
-          this.error.set(mensajeDeError(e, 'cargar el catalogo'));
+          this.error.set(mensajeDeError(e, 'cargar el catálogo'));
           this.servicios.set([]);
           this.total.set(0);
           this.cargando.set(false);

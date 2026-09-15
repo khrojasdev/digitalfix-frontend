@@ -1,0 +1,52 @@
+<section class="pagina construccion">
+  <div class="marco">
+    <span class="icono" aria-hidden="true">
+      <mat-icon>{{ icono }}</mat-icon>
+    </span>
+
+    <h1>{{ titulo }}</h1>
+    <p class="estado">
+      <mat-icon aria-hidden="true">construction</mat-icon>
+      En construcción
+    </p>
+
+    <p class="proposito">{{ proposito }}</p>
+
+    @if (capacidades.length > 0) {
+      <div class="bloque">
+        <h2>Qué permitirá hacer</h2>
+        <ul>
+          @for (capacidad of capacidades; track capacidad) {
+            <li>{{ capacidad }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <dl class="ficha">
+      @if (historias) {
+        <div>
+          <dt>Backlog</dt>
+          <dd>{{ historias }}</dd>
+        </div>
+      }
+      @if (dependeDe) {
+        <div>
+          <dt>Depende de</dt>
+          <dd>{{ dependeDe }}</dd>
+        </div>
+      }
+    </dl>
+
+    <div class="acciones">
+      <a mat-flat-button routerLink="/catalog">
+        <mat-icon>design_services</mat-icon>
+        Ir al catálogo
+      </a>
+      <a mat-stroked-button routerLink="/dashboard">
+        <mat-icon>dashboard</mat-icon>
+        Ver el panel
+      </a>
+    </div>
+  </div>
+</section>

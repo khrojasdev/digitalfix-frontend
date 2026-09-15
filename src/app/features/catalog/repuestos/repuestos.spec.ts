@@ -51,7 +51,7 @@ describe('Repuestos', () => {
     fixture.detectChanges();
 
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(texto).toContain('todavia no tiene repuestos');
+    expect(texto).toContain('todavía no tiene repuestos');
   });
 
   it('destaca la fila del repuesto que esta en o bajo su minimo', async () => {
@@ -63,7 +63,7 @@ describe('Repuestos', () => {
 
     const elemento = fixture.nativeElement as HTMLElement;
     expect(elemento.querySelectorAll('tr.bajo-minimo').length).toBe(1);
-    expect(elemento.textContent).toContain('en o bajo su stock minimo');
+    expect(elemento.textContent).toContain('en o bajo su stock mínimo');
   });
 
   it('al filtrar por bajo minimo consulta el endpoint dedicado, no el listado', async () => {
