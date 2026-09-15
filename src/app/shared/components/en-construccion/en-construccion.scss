@@ -1,0 +1,130 @@
+.construccion {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.marco {
+  max-width: 620px;
+  width: 100%;
+  background: var(--df-superficie);
+  border: 1px solid var(--df-borde);
+  border-radius: var(--df-radio);
+  box-shadow: var(--df-sombra);
+  padding: 32px;
+  text-align: center;
+}
+
+.icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--df-primary) 10%, transparent);
+  color: var(--df-primary);
+  margin-bottom: 14px;
+}
+
+.icono mat-icon {
+  font-size: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--df-aviso-suave);
+  color: var(--df-aviso);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.estado mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.proposito {
+  margin: 0 0 22px;
+  color: var(--df-texto-suave);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* Lo que vendrá va alineado a la izquierda aunque el resto esté centrado: una
+   lista centrada se lee mucho peor que una alineada. */
+.bloque {
+  text-align: left;
+  background: var(--mat-sys-surface-container-lowest);
+  border: 1px solid var(--df-borde);
+  border-radius: var(--df-radio-chico);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.bloque h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--df-texto-suave);
+}
+
+.bloque ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.ficha {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 28px;
+  margin: 0 0 24px;
+  font-size: 13px;
+}
+
+.ficha dt {
+  color: var(--df-texto-suave);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.ficha dd {
+  margin: 0;
+  font-weight: 500;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 12.5px;
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 599px) {
+  .marco {
+    padding: 22px 18px;
+  }
+}

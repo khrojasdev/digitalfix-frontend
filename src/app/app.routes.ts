@@ -43,6 +43,28 @@ export const routes: Routes = [
           import('./features/catalog/repuestos/repuestos').then((m) => m.Repuestos),
       },
       {
+        // Pantallas de fases posteriores. Se enrutan igual, con una vista que
+        // dice qué falta y qué hará, en vez de dejar el enlace muerto: así la
+        // navegación completa se puede recorrer y revisar.
+        path: 'workorders',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR', 'CLIENTE'] },
+        loadComponent: () =>
+          import('./features/workorders/workorders').then((m) => m.Workorders),
+      },
+      {
+        path: 'reports',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR'] },
+        loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
+      },
+      {
+        path: 'audit',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'AUDITOR'] },
+        loadComponent: () => import('./features/audit/audit').then((m) => m.Audit),
+      },
+      {
         path: 'acceso-denegado',
         loadComponent: () =>
           import('./features/auth/access-denied/access-denied.component').then(

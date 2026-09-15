@@ -1,10 +1,14 @@
+import { registerLocaleData } from '@angular/common';
+import localeEsCl from '@angular/common/locales/es-CL';
 import {
   ApplicationConfig,
+  LOCALE_ID,
   provideBrowserGlobalErrorListeners,
   importProvidersFrom,
   provideAppInitializer,
   inject,
 } from '@angular/core';
+import { MatPaginatorIntl } from '@angular/material/paginator';
 import { MsalService } from '@azure/msal-angular';
 import { provideRouter } from '@angular/router';
 import {
@@ -18,8 +22,13 @@ import {
 } from '@angular/platform-browser';
 
 import { routes } from './app.routes';
-import { msalConfig } from './core/auth/msal.config';
-import { environment } from '../environments/environment';
+import { msalConfig, recursosProtegidos, scopesDeAcceso } from './core/auth/msal.config';
+import { CorrelacionInterceptor } from './core/http/correlacion.interceptor';
+import { paginadorEnEspanol } from './core/i18n/paginador-es';
+
+// Fechas, miles y moneda con el formato de aquí. Sin esto, un importe sale
+// como "$45,000" en vez de "$45.000".
+registerLocaleData(localeEsCl);
 
 import { MsalModule, MsalGuard, MsalInterceptor } from '@azure/msal-angular';
 import { PublicClientApplication, InteractionType } from '@azure/msal-browser';
@@ -27,12 +36,22 @@ import { PublicClientApplication, InteractionType } from '@azure/msal-browser';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    { provide: LOCALE_ID, useValue: 'es-CL' },
+    { provide: MatPaginatorIntl, useFactory: paginadorEnEspanol },
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
     provideHttpClient(withInterceptorsFromDi()),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: MsalInterceptor,
+      multi: true,
+    },
+    // Va después del de MSAL a propósito: no tiene sentido etiquetar una
+    // petición que el interceptor de MSAL todavía puede desviar a la pantalla
+    // de inicio de sesión.
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CorrelacionInterceptor,
       multi: true,
     },
     MsalGuard,
@@ -57,17 +76,11 @@ export const appConfig: ApplicationConfig = {
         new PublicClientApplication(msalConfig),
         {
           interactionType: InteractionType.Redirect,
-          // Recuerda cambiar CLIENT_ID_PENDIENTE por tu Client ID real de Azure
-          authRequest: { scopes: ['api://7bcc8174-7f46-4510-b2eb-c52ac3353692/access_as_user'] },
+          authRequest: { scopes: scopesDeAcceso },
         },
         {
           interactionType: InteractionType.Redirect,
-          protectedResourceMap: new Map([
-            [
-              `${environment.apiUrl}/*`,
-              ['api://7bcc8174-7f46-4510-b2eb-c52ac3353692/access_as_user'],
-            ],
-          ]),
+          protectedResourceMap: recursosProtegidos,
         }
       )
     ),

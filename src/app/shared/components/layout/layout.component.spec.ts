@@ -64,6 +64,28 @@ describe('LayoutComponent', () => {
     expect(texto()).toContain('Panel');
     expect(texto()).toContain('Catálogo');
     expect(texto()).toContain('Repuestos');
+    // Las de fases posteriores tambien aparecen, marcadas
+    expect(texto()).toContain('Órdenes de trabajo');
+    expect(texto()).toContain('Auditoría');
+    expect(texto()).toContain('pronto');
+  });
+
+  it('un SUPERVISOR ve reportes; un AUDITOR, auditoria', async () => {
+    responderPerfil({
+      oid: 'oid-3',
+      email: 'sup@digitalfix.cl',
+      name: 'Supervisora',
+      companyId: '1',
+      companyName: 'ElectroRed',
+      roles: ['SUPERVISOR'],
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(texto()).toContain('Reportes');
+    // auditoria es solo de ADMIN y AUDITOR
+    expect(texto()).not.toContain('Auditoría');
   });
 
   it('un CLIENTE ve el catalogo pero no el panel', async () => {
