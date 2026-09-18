@@ -1,60 +1,263 @@
 @use '@angular/material' as mat;
 
+/* =============================================================================
+   Tema
+   =============================================================================
+
+   El andamio de Angular dejaba la paleta `rose` como primaria y `red` como
+   terciaria, mientras el CSS propio definia --df-primary en azul. Resultado:
+   cada componente de Material salia rosa y cada regla propia azul, y los
+   botones sobre la barra superior quedaban casi ilegibles porque su color
+   venia de una paleta y el fondo de la otra.
+
+   Ahora hay una sola fuente: el tema. Los tokens --df-* se derivan de los
+   --mat-sys-* que genera mat.theme, de modo que no puedan volver a
+   desincronizarse.
+   ============================================================================= */
+
 html {
   height: 100%;
-  @include mat.theme(
-      (
-        color: (
-          primary: mat.$rose-palette,
-          tertiary: mat.$red-palette,
-        ),
-        typography: Roboto,
-        density: 0,
-      )
-  );
-}
 
-body {
-  color-scheme: light;
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-  margin: 0;
-  height: 100%;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
 }
 
 :root {
-  --df-primary: #0056b3;
-  --df-primary-hover: #004494;
-  --df-secondary: #f59e0b;
-  --df-background: #f4f6f8;
-  --df-surface: #ffffff;
-  --df-text-main: #1f2937;
-  --df-text-muted: #6b7280;
-  --df-font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+  /* ------------------------------------------------------- color de marca */
+  --df-primary: var(--mat-sys-primary);
+  --df-on-primary: var(--mat-sys-on-primary);
+  --df-superficie: var(--mat-sys-surface);
+  --df-superficie-alta: var(--mat-sys-surface-container-low);
+  --df-borde: var(--mat-sys-outline-variant);
+  --df-texto: var(--mat-sys-on-surface);
+  --df-texto-suave: var(--mat-sys-on-surface-variant);
+
+  /* Estados. Se usan tal cual en tarjetas, etiquetas y filas destacadas, para
+     que "atencion" signifique lo mismo en todas las pantallas. */
+  --df-exito: #15803d;
+  --df-exito-suave: #e8f5ec;
+  --df-aviso: #b45309;
+  --df-aviso-suave: #fdf4e6;
+  --df-peligro: var(--mat-sys-error);
+  --df-peligro-suave: var(--mat-sys-error-container);
+
+  /* ------------------------------------------------------------- medidas */
+  --df-radio: 12px;
+  --df-radio-chico: 8px;
+  --df-sombra: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --df-sombra-alta: 0 4px 6px -2px rgba(16, 24, 40, 0.05),
+                    0 12px 16px -4px rgba(16, 24, 40, 0.08);
+  --df-ancho-contenido: 1180px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
-  font-family: var(--df-font-family);
-  background-color: var(--df-background);
-  color: var(--df-text-main);
+  min-height: 100%;
   box-sizing: border-box;
+  color-scheme: light;
+  background-color: var(--mat-sys-surface-container-lowest);
+  color: var(--df-texto);
+  font: var(--mat-sys-body-medium);
+  font-family: Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
+/* El foco tiene que verse siempre: es la unica pista que tiene quien navega
+   con teclado. Se dibuja fuera del elemento para no alterar su tamano. */
 *:focus-visible {
-  outline: 3px solid var(--df-secondary);
+  outline: 2px solid var(--df-primary);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
-/* Agrega esto al final para el espaciado interno del layout */
+/* =============================================================================
+   Piezas compartidas entre pantallas
+   ============================================================================= */
+
+.pagina {
+  max-width: var(--df-ancho-contenido);
+  margin: 0 auto;
+}
+
+/* Encabezado de pantalla: titulo a la izquierda, acciones a la derecha, y en
+   movil uno debajo del otro sin que nada se salga. */
+.encabezado-pagina {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.encabezado-pagina h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.encabezado-pagina .subtitulo {
+  margin: 4px 0 0;
+  color: var(--df-texto-suave);
+  font-size: 14px;
+}
+
+.tarjeta {
+  background: var(--df-superficie);
+  border: 1px solid var(--df-borde);
+  border-radius: var(--df-radio);
+  box-shadow: var(--df-sombra);
+}
+
+/* Las tarjetas de Material se alinean con lo anterior en vez de traer su
+   propia sombra y su propio radio. */
+mat-card.mat-mdc-card {
+  border: 1px solid var(--df-borde);
+  border-radius: var(--df-radio);
+  box-shadow: var(--df-sombra);
+}
+
+/* Etiquetas de estado. Un color por significado, y el mismo en todas partes. */
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.etiqueta--activo {
+  background: var(--df-exito-suave);
+  color: var(--df-exito);
+}
+
+.etiqueta--inactivo {
+  background: color-mix(in srgb, var(--df-texto) 8%, transparent);
+  color: var(--df-texto-suave);
+}
+
+.etiqueta--aviso {
+  background: var(--df-aviso-suave);
+  color: var(--df-aviso);
+}
+
+.etiqueta--peligro {
+  background: var(--df-peligro-suave);
+  color: var(--mat-sys-on-error-container);
+}
+
+/* Barra de acciones de una pantalla. */
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.barra-acciones .separador {
+  flex: 1 1 auto;
+}
+
+/* Tablas: cabecera tenue, filas con separador fino y desplazamiento propio.
+   Una tabla ancha se desplaza dentro de su contenedor y no obliga a mover la
+   pagina entera en pantalla estrecha. */
+.contenedor-tabla {
+  overflow-x: auto;
+  border-radius: var(--df-radio-chico);
+  border: 1px solid var(--df-borde);
+}
+
+table.mat-mdc-table {
+  width: 100%;
+  background: transparent;
+}
+
+table.mat-mdc-table .mat-mdc-header-row {
+  background: var(--df-superficie-alta);
+}
+
+table.mat-mdc-table .mat-mdc-header-cell {
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.2px;
+  color: var(--df-texto-suave);
+}
+
+table.mat-mdc-table .mat-mdc-row:hover {
+  background: color-mix(in srgb, var(--df-primary) 4%, transparent);
+}
+
+.derecha {
+  text-align: right;
+}
+
+/* Mensajes de estado de una pantalla. */
+.mensaje {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--df-radio-chico);
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.mensaje--error {
+  background: var(--df-peligro-suave);
+  color: var(--mat-sys-on-error-container);
+}
+
+.mensaje--ok {
+  background: var(--df-exito-suave);
+  color: var(--df-exito);
+}
+
+.vacio {
+  color: var(--df-texto-suave);
+  margin: 24px 0;
+  text-align: center;
+}
+
+/* Botones: alto y radio consistentes, y el de accion principal con peso. */
+.mat-mdc-unelevated-button,
+.mat-mdc-raised-button,
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  border-radius: var(--df-radio-chico);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.mat-mdc-outlined-button:not(:disabled) {
+  border-color: var(--df-borde);
+}
+
 .content-padding {
   padding: 24px;
+}
+
+@media (max-width: 599px) {
+  .content-padding {
+    padding: 16px;
+  }
 }

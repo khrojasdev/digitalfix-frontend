@@ -2,11 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatListModule } from '@angular/material/list';
-import { MatDividerModule } from '@angular/material/divider';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -21,11 +18,8 @@ import { AuthContextService } from '../../../core/auth/auth-context.service';
     CommonModule,
     RouterModule,
     MatSidenavModule,
-    MatToolbarModule,
     MatIconModule,
     MatButtonModule,
-    MatListModule,
-    MatDividerModule,
   ],
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss'],
@@ -43,7 +37,7 @@ export class LayoutComponent {
   );
 
   // Los cuatro roles del caso son ADMIN, SUPERVISOR, CLIENTE y AUDITOR.
-  // TECNICO no existe, y estaba en tres de los cuatro enlaces del menú.
+  // Los roles salen de /api/me, no del token: ver AuthContextService.
   readonly puedeVerPanel$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR']);
   readonly puedeVerCatalogo$ = this.authContext.tieneAlguno$([
     'ADMIN',
@@ -51,7 +45,27 @@ export class LayoutComponent {
     'AUDITOR',
     'CLIENTE',
   ]);
+  readonly puedeVerRepuestos$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR']);
+  readonly puedeVerOrdenes$ = this.authContext.tieneAlguno$([
+    'ADMIN',
+    'SUPERVISOR',
+    'AUDITOR',
+    'CLIENTE',
+  ]);
+  readonly puedeVerReportes$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
   readonly puedeAuditar$ = this.authContext.tieneAlguno$(['ADMIN', 'AUDITOR']);
+
+  /** Las iniciales del avatar. Dos letras como mucho: tres ya no se leen. */
+  iniciales(nombre: string | null | undefined): string {
+    const partes = (nombre ?? '').trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) {
+      return '·';
+    }
+    if (partes.length === 1) {
+      return partes[0].slice(0, 2).toUpperCase();
+    }
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  }
 
   cerrarSesion() {
     this.msalService.logoutRedirect();

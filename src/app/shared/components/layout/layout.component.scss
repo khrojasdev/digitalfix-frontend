@@ -1,62 +1,150 @@
 .sidenav-container {
   height: 100vh;
+  background: var(--mat-sys-surface-container-lowest);
 }
+
+/* ============================================================== menu lateral */
 
 .sidenav {
-  width: 260px;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  width: 264px;
+  border-right: 1px solid var(--df-borde);
+  background: var(--df-superficie);
+  padding-bottom: 16px;
 }
 
-/* ----------------------------------------------------------------- la marca */
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--df-borde);
+  text-decoration: none;
+  color: inherit;
+}
 
 .logo-kcd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 30px;
-  padding: 0 8px;
-  border-radius: 6px;
-  background: #1e3a8a;
-  color: #fff;
+  min-width: 42px;
+  height: 32px;
+  padding: 0 9px;
+  border-radius: var(--df-radio-chico);
+  background: var(--df-primary);
+  color: var(--df-on-primary);
   font-weight: 700;
   font-size: 14px;
-  /* Sin esto las tres letras se ven apelmazadas a este tamaño. */
-  letter-spacing: 1.5px;
+  /* Sin esto las tres letras se ven apelmazadas a este tamano. */
+  letter-spacing: 1.6px;
 }
 
-.marca-lateral {
+.marca-texto {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  flex-direction: column;
+  line-height: 1.25;
 }
 
 .marca-nombre {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15.5px;
+}
+
+.marca-nota {
+  font-size: 11.5px;
+  color: var(--df-texto-suave);
+}
+
+.menu {
+  padding: 4px 10px;
+}
+
+.menu-titulo {
+  margin: 14px 8px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--df-texto-suave);
+}
+
+/* Enlaces propios y no mat-list-item: hacen falta tres cosas a la vez —icono,
+   texto y una etiqueta a la derecha— y pelear con el interior del componente
+   de Material para conseguirlo sale mas caro que escribir la fila. */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--df-radio-chico);
+  color: var(--df-texto);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.item mat-icon {
+  color: var(--df-texto-suave);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.item:hover {
+  background: color-mix(in srgb, var(--df-primary) 7%, transparent);
+}
+
+.item.activo {
+  background: color-mix(in srgb, var(--df-primary) 12%, transparent);
+  color: var(--df-primary);
+  font-weight: 600;
+}
+
+.item.activo mat-icon {
+  color: var(--df-primary);
+}
+
+.pronto {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--df-aviso-suave);
+  color: var(--df-aviso);
+}
+
+/* ============================================================ barra superior */
+
+/*
+  Barra clara y no de color. Antes era azul con botones de texto encima, y el
+  color del texto lo decidia el tema de Material mientras el del fondo lo
+  decidia una regla propia: el de cerrar sesion terminaba casi invisible.
+  Sobre superficie clara, cualquier boton de Material se ve como debe.
+*/
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 64px;
+  padding: 0 20px;
+  background: var(--df-superficie);
+  border-bottom: 1px solid var(--df-borde);
 }
 
 .logo-barra {
-  /* En la barra superior el fondo ya es azul: el recuadro se invierte para
-     que el logo no desaparezca dentro de él. */
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  margin-right: 12px;
-}
-
-/* ------------------------------------------------------------- barra superior */
-
-.top-toolbar {
-  background-color: var(--df-primary, #1e3a8a);
-  color: #fff;
-  gap: 4px;
+  flex: none;
 }
 
 .titulo-barra {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .spacer {
@@ -65,63 +153,70 @@
 
 .perfil {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  line-height: 1.25;
-  margin-right: 12px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: var(--mat-sys-surface-container-low);
 }
 
-.perfil-nombre {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.perfil-empresa {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.boton-salir {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* En pantallas angostas el botón se queda solo con el icono: el texto es lo
-   primero que sobra cuando el espacio aprieta. */
-@media (max-width: 599px) {
-  .texto-salir,
-  .titulo-barra,
-  .perfil {
-    display: none;
-  }
-}
-
-/* ----------------------------------------------------------------- el menú */
-
-a[mat-list-item].activo {
-  background: rgba(30, 58, 138, 0.1);
+.perfil-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--df-primary);
+  color: var(--df-on-primary);
+  font-size: 12.5px;
   font-weight: 600;
 }
 
-.pendiente {
+.perfil-datos {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px 16px;
-  opacity: 0.45;
-  cursor: default;
+  flex-direction: column;
+  line-height: 1.25;
 }
 
-.pronto {
-  margin-left: auto;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid currentColor;
-  border-radius: 10px;
-  padding: 1px 6px;
+.perfil-nombre {
+  font-size: 13.5px;
+  font-weight: 500;
 }
 
-.content-padding {
-  padding: 24px;
+.perfil-empresa {
+  font-size: 11.5px;
+  color: var(--df-texto-suave);
+}
+
+.boton-salir {
+  flex: none;
+}
+
+/* En pantalla angosta sobra el texto antes que el icono: el boton se queda
+   redondo y sigue siendo pulsable con el pulgar. */
+@media (max-width: 767px) {
+  .texto-salir,
+  .perfil-datos {
+    display: none;
+  }
+
+  .perfil {
+    padding: 4px;
+  }
+
+  .boton-salir {
+    min-width: 0;
+    padding: 0 14px;
+  }
+}
+
+@media (max-width: 599px) {
+  .barra {
+    padding: 0 12px;
+  }
+
+  .titulo-barra {
+    display: none;
+  }
 }

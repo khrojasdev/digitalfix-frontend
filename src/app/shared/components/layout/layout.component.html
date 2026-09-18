@@ -3,92 +3,106 @@
                [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
                [mode]="(isHandset$ | async) ? 'over' : 'side'"
                [opened]="(isHandset$ | async) === false">
-    <div class="marca-lateral">
+    <a class="marca" routerLink="/catalog">
       <span class="logo-kcd">KCD</span>
-      <span class="marca-nombre">DigitalFix</span>
-    </div>
+      <span class="marca-texto">
+        <span class="marca-nombre">DigitalFix</span>
+        <span class="marca-nota">Mantención eléctrica</span>
+      </span>
+    </a>
 
-    <mat-nav-list>
-      <!--
-        Los enlaces se filtran por el rol que devuelve /api/me, no por el del
-        token. Con el token, `roles` llegaba vacío y este menú se dibujaba sin
-        una sola entrada.
-      -->
+    <nav class="menu" aria-label="Navegación principal">
+      <p class="menu-titulo">Operación</p>
+
       @if (puedeVerPanel$ | async) {
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="activo">
-          <mat-icon matListItemIcon>dashboard</mat-icon>
-          <span matListItemTitle>Panel</span>
+        <a class="item" routerLink="/dashboard" routerLinkActive="activo">
+          <mat-icon>dashboard</mat-icon>
+          <span>Panel</span>
         </a>
       }
 
       @if (puedeVerCatalogo$ | async) {
-        <a mat-list-item routerLink="/catalog" routerLinkActive="activo"
+        <a class="item" routerLink="/catalog" routerLinkActive="activo"
            [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon matListItemIcon>design_services</mat-icon>
-          <span matListItemTitle>Catálogo</span>
-        </a>
-
-        <a mat-list-item routerLink="/catalog/repuestos" routerLinkActive="activo">
-          <mat-icon matListItemIcon>inventory_2</mat-icon>
-          <span matListItemTitle>Repuestos</span>
+          <mat-icon>design_services</mat-icon>
+          <span>Catálogo</span>
         </a>
       }
 
-      <mat-divider></mat-divider>
+      @if (puedeVerRepuestos$ | async) {
+        <a class="item" routerLink="/catalog/repuestos" routerLinkActive="activo">
+          <mat-icon>inventory_2</mat-icon>
+          <span>Repuestos</span>
+        </a>
+      }
 
-      <!--
-        Estas dos son de otras historias y todavía no tienen pantalla. Se
-        muestran apagadas en vez de ocultarse: así se ve la forma completa de
-        la aplicación sin ofrecer un enlace que lleva a ninguna parte.
-      -->
-      <div mat-list-item class="pendiente" aria-disabled="true">
-        <mat-icon matListItemIcon>assignment</mat-icon>
-        <span matListItemTitle>Órdenes de trabajo</span>
-        <span class="pronto">pronto</span>
-      </div>
+      @if (puedeVerOrdenes$ | async) {
+        <a class="item" routerLink="/workorders" routerLinkActive="activo">
+          <mat-icon>assignment</mat-icon>
+          <span>Órdenes de trabajo</span>
+          <span class="pronto">pronto</span>
+        </a>
+      }
+
+      <p class="menu-titulo">Control</p>
+
+      @if (puedeVerReportes$ | async) {
+        <a class="item" routerLink="/reports" routerLinkActive="activo">
+          <mat-icon>insights</mat-icon>
+          <span>Reportes</span>
+          <span class="pronto">pronto</span>
+        </a>
+      }
 
       @if (puedeAuditar$ | async) {
-        <div mat-list-item class="pendiente" aria-disabled="true">
-          <mat-icon matListItemIcon>fact_check</mat-icon>
-          <span matListItemTitle>Auditoría</span>
+        <a class="item" routerLink="/audit" routerLinkActive="activo">
+          <mat-icon>fact_check</mat-icon>
+          <span>Auditoría</span>
           <span class="pronto">pronto</span>
-        </div>
+        </a>
       }
-    </mat-nav-list>
+    </nav>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <mat-toolbar class="top-toolbar">
+    <header class="barra">
       <button
         type="button"
         aria-label="Mostrar u ocultar el menú"
         mat-icon-button
+        class="boton-menu"
         (click)="drawer.toggle()"
         *ngIf="isHandset$ | async">
         <mat-icon>menu</mat-icon>
       </button>
 
-      <span class="logo-kcd logo-barra">KCD</span>
-      <span class="titulo-barra">Gestión de Operaciones</span>
+      <!-- En móvil el menú lateral está oculto, así que el logo se queda sin
+           sitio: aquí es donde aparece. -->
+      @if (isHandset$ | async) {
+        <span class="logo-kcd logo-barra">KCD</span>
+      }
+
+      <span class="titulo-barra">Gestión de operaciones</span>
 
       <span class="spacer"></span>
 
-      <!--
-        El perfil puede no llegar; el botón de salir tiene que estar igual.
-        Antes ambos vivían dentro del mismo *ngIf, así que un /api/me caído
-        dejaba a la persona sin forma de cerrar sesión.
-      -->
       @if (authContext.profile$ | async; as profile) {
         <div class="perfil">
-          <span class="perfil-nombre">{{ profile.name }}</span>
-          @if (profile.companyName) {
-            <span class="perfil-empresa">{{ profile.companyName }}</span>
-          }
+          <span class="perfil-avatar" aria-hidden="true">{{ iniciales(profile.name) }}</span>
+          <span class="perfil-datos">
+            <span class="perfil-nombre">{{ profile.name }}</span>
+            <span class="perfil-empresa">{{ profile.companyName || 'Empresa ' + profile.companyId }}</span>
+          </span>
         </div>
       }
 
+      <!--
+        El botón de salir vive FUERA del bloque del perfil: si /api/me no
+        responde, la persona tiene que poder salir igual. Y es un botón
+        relleno, no uno de texto sobre fondo de color: así se ve.
+      -->
       <button
-        mat-stroked-button
+        mat-flat-button
         type="button"
         class="boton-salir"
         aria-label="Cerrar sesión"
@@ -96,7 +110,7 @@
         <mat-icon>logout</mat-icon>
         <span class="texto-salir">Cerrar sesión</span>
       </button>
-    </mat-toolbar>
+    </header>
 
     <main class="content-padding">
       <router-outlet></router-outlet>
