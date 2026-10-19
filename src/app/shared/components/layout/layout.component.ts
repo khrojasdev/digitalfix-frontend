@@ -54,6 +54,7 @@ export class LayoutComponent {
   ]);
   readonly puedeVerReportes$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
   readonly puedeAuditar$ = this.authContext.tieneAlguno$(['ADMIN', 'AUDITOR']);
+  readonly puedeVerNotificaciones$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR']);
 
   /** Las iniciales del avatar. Dos letras como mucho: tres ya no se leen. */
   iniciales(nombre: string | null | undefined): string {

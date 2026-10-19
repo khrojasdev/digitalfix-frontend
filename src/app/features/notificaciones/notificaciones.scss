@@ -1,0 +1,15 @@
+.tarjeta {
+  margin-top: 1rem;
+}
+
+.tarjeta + .tarjeta {
+  margin-top: 1.5rem;
+}
+
+table {
+  width: 100%;
+}
+
+.mensaje-error {
+  margin: 1rem 0;
+}

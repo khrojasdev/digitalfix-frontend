@@ -65,6 +65,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/audit/audit').then((m) => m.Audit),
       },
       {
+        path: 'notifications',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR'] },
+        loadComponent: () =>
+          import('./features/notificaciones/notificaciones').then((m) => m.Notificaciones),
+      },
+      {
         path: 'acceso-denegado',
         loadComponent: () =>
           import('./features/auth/access-denied/access-denied.component').then(

@@ -61,6 +61,13 @@
           <span class="pronto">pronto</span>
         </a>
       }
+
+      @if (puedeVerNotificaciones$ | async) {
+        <a class="item" routerLink="/notifications" routerLinkActive="activo">
+          <mat-icon>notifications</mat-icon>
+          <span>Notificaciones</span>
+        </a>
+      }
     </nav>
   </mat-sidenav>
 
