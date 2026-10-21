@@ -1,28 +1,61 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
 import { Audit } from './audit';
+import { environment } from '../../../environments/environment';
 
 describe('Audit', () => {
   let fixture: ComponentFixture<Audit>;
+  let http: HttpTestingController;
+  const base = environment.apiUrl;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Audit],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Audit);
-    fixture.detectChanges();
+    http = TestBed.inject(HttpTestingController);
   });
 
-  it('se crea', () => {
+  afterEach(() => http.verify());
+
+  it('pide los eventos paginados al BFF al iniciar', () => {
+    fixture.detectChanges();
+    const peticion = http.expectOne((r) => r.url === `${base}/api/audit/events`);
+    expect(peticion.request.params.get('page')).toBe('0');
+    expect(peticion.request.params.get('size')).toBe('20');
+    peticion.flush({ content: [], totalElements: 0 });
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('deja claro que la bitacora es inmutable', () => {
+  it('muestra los eventos recibidos', () => {
+    fixture.detectChanges();
+    http.expectOne((r) => r.url === `${base}/api/audit/events`).flush({
+      content: [
+        {
+          id: 1,
+          tipoEvento: 'CREADA',
+          ordenId: 9,
+          autorId: 'oid-1',
+          empresaId: 7,
+          fecha: '2026-10-18T12:00:00',
+          correlacionId: null,
+          eventKey: 'k1',
+        },
+      ],
+      totalElements: 1,
+    });
+    fixture.detectChanges();
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('Auditoría');
-    expect(texto).toContain('inmutable');
+    expect(texto).toContain('CREADA');
   });
 });
