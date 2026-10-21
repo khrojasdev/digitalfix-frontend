@@ -64,9 +64,10 @@ describe('LayoutComponent', () => {
     expect(texto()).toContain('Panel');
     expect(texto()).toContain('Catálogo');
     expect(texto()).toContain('Repuestos');
+    // Las de fases posteriores tambien aparecen, marcadas
     expect(texto()).toContain('Órdenes de trabajo');
     expect(texto()).toContain('Auditoría');
-    expect(texto()).toContain('Notificaciones');
+    expect(texto()).toContain('pronto');
   });
 
   it('un SUPERVISOR ve reportes; un AUDITOR, auditoria', async () => {
