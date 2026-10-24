@@ -14,7 +14,7 @@ RUN npm run build --configuration=production
 FROM nginx:alpine
 
 # Copiar la configuración personalizada de Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Copiar los archivos compilados
 # OJO: Verifica si tu carpeta dist se llama 'digitalfix-frontend/browser' o solo 'digitalfix-frontend'
