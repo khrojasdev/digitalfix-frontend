@@ -1,0 +1,27 @@
+.panel {
+  padding: 20px;
+}
+
+.generar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--df-primary) 7%, var(--df-superficie)), var(--df-superficie));
+}
+
+.generar-texto {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  max-width: 640px;
+}
+
+.generar-texto .tarjeta-titulo {
+  margin-bottom: 4px;
+}
+
+.generar-texto p {
+  margin: 0;
+}
