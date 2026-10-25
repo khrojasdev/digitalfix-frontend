@@ -4,7 +4,14 @@
       <span class="icono-pagina"><mat-icon>insights</mat-icon></span>
       <div>
         <h1>Reportes</h1>
-        <p class="subtitulo">Indicadores de operación · {{ nombrePeriodo() }}</p>
+        <p class="subtitulo">
+          Indicadores de operación · {{ nombrePeriodo() }}
+          @if (fuente() === 'ordenes') {
+            <span class="etiqueta">calculados desde las órdenes</span>
+          } @else if (fuente() === 'report') {
+            <span class="etiqueta">según el servicio de reportes</span>
+          }
+        </p>
       </div>
     </div>
     <div class="acciones-pagina">
@@ -27,6 +34,19 @@
     <div class="mensaje mensaje--error" role="alert">
       <mat-icon>error_outline</mat-icon>
       {{ error() }}
+      @if (fuente() === 'ordenes') {
+        Se muestran los indicadores calculados desde las órdenes de trabajo.
+      }
+    </div>
+  }
+  @if (errorOrdenes()) {
+    <div class="mensaje mensaje--error" role="alert"><mat-icon>error_outline</mat-icon>{{ errorOrdenes() }}</div>
+  }
+  @if (faltanEnReport() > 0) {
+    <div class="mensaje" role="note">
+      <mat-icon>info</mat-icon>
+      El servicio de reportes registró {{ indicadores()?.ordenesTotales }} de {{ ordenesPeriodo().length }} órdenes del período:
+      solo cuenta las que recibió por RabbitMQ (las creadas antes de conectarlo no aparecen en los indicadores, pero sí en el detalle).
     </div>
   }
 
@@ -98,6 +118,70 @@
       </div>
     </section>
 
+    <section class="tarjeta panel">
+      <div class="encabezado-tarjeta">
+        <h2 class="tarjeta-titulo">
+          Órdenes del período
+          <span class="etiqueta">{{ ordenesFiltradas().length }}</span>
+        </h2>
+        <div class="filtros-ordenes">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Estado</mat-label>
+            <mat-select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)" name="estado">
+              <mat-option value="">Todos</mat-option>
+              @for (e of estados; track e) {
+                <mat-option [value]="e">{{ nombreEstado[e] }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Servicio</mat-label>
+            <mat-select [ngModel]="filtroServicio()" (ngModelChange)="filtroServicio.set($event)" name="servicio">
+              <mat-option [value]="null">Todos</mat-option>
+              @for (s of serviciosEnPeriodo(); track s.id) {
+                <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          @if (filtroEstado() || filtroServicio() !== null) {
+            <button mat-button type="button" (click)="limpiarFiltrosOrdenes()">Limpiar</button>
+          }
+        </div>
+      </div>
+      @if (ordenesFiltradas().length > 0) {
+        <div class="contenedor-tabla">
+          <table mat-table [dataSource]="ordenesFiltradas()" aria-label="Órdenes del período">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>N°</th>
+              <td mat-cell *matCellDef="let o"><b>#{{ o.id }}</b></td>
+            </ng-container>
+            <ng-container matColumnDef="servicio">
+              <th mat-header-cell *matHeaderCellDef>Servicio</th>
+              <td mat-cell *matCellDef="let o">{{ nombreServicio(o.servicioId) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let o"><span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span></td>
+            </ng-container>
+            <ng-container matColumnDef="fechaCreacion">
+              <th mat-header-cell *matHeaderCellDef>Creada</th>
+              <td mat-cell *matCellDef="let o" class="texto-suave">{{ o.fechaCreacion | date: 'dd-MM-yyyy HH:mm' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="asignadoA">
+              <th mat-header-cell *matHeaderCellDef>Asignada a</th>
+              <td mat-cell *matCellDef="let o" class="texto-suave">{{ o.asignadoA ?? '—' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="columnasOrdenes"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasOrdenes"></tr>
+          </table>
+        </div>
+      } @else {
+        <div class="vacio"><mat-icon>assignment</mat-icon>
+          <span>{{ filtroEstado() || filtroServicio() !== null ? 'Ninguna orden coincide con el filtro.' : 'No hay órdenes en el período.' }}</span>
+        </div>
+      }
+    </section>
+
     <section class="tarjeta panel generar">
       <div class="generar-texto">
         <span class="icono-pagina"><mat-icon>description</mat-icon></span>
@@ -105,7 +189,7 @@
           <h2 class="tarjeta-titulo">Generar reporte</h2>
           <p class="texto-suave">
             Descarga el reporte de <b>{{ nombrePeriodo().toLowerCase() }}</b> con los indicadores, la distribución por
-            estado y el ranking de servicios.
+            estado, el ranking de servicios y el detalle de las órdenes (con los filtros aplicados).
           </p>
         </div>
       </div>

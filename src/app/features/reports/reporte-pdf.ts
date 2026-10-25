@@ -10,6 +10,10 @@ export interface DatosReporte {
   tiempoMedioMinutos: number | null;
   conteoPorEstado: Record<string, number>;
   ranking: Array<{ codigo: string | null; nombre: string; solicitudes: number }>;
+  /** De donde salen los indicadores (se imprime bajo la ficha). */
+  fuente?: string;
+  /** Detalle de las ordenes del periodo, con los filtros aplicados. */
+  ordenes?: Array<{ id: number; servicio: string; estado: string; creada: string; asignadoA: string | null }>;
 }
 
 const AZUL: [number, number, number] = [12, 35, 64];
@@ -52,6 +56,9 @@ export async function crearReportePdf(datos: DatosReporte): Promise<import('jspd
   doc.setFontSize(9);
   const fecha = datos.generado.toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' });
   doc.text(`Generado el ${fecha} por ${datos.autor}`, margen, 40);
+  if (datos.fuente) {
+    doc.text(`Fuente de los indicadores: ${datos.fuente}`, margen, 45);
+  }
 
   // Indicadores.
   const cerradas = datos.conteoPorEstado['CERRADA'] ?? 0;
@@ -113,6 +120,28 @@ export async function crearReportePdf(datos: DatosReporte): Promise<import('jspd
     styles: { fontSize: 10, cellPadding: 3 },
     columnStyles: { 0: { cellWidth: 10 }, 3: { halign: 'right' } },
   });
+
+  // Detalle de ordenes.
+  if (datos.ordenes) {
+    y = ultimaY(doc) + 10;
+    if (y > doc.internal.pageSize.getHeight() - 40) {
+      doc.addPage();
+      y = 20;
+    }
+    titulo(doc, `Detalle de órdenes (${datos.ordenes.length})`, y, margen);
+    autoTable(doc, {
+      startY: y + 4,
+      margin: { left: margen, right: margen },
+      head: [['N°', 'Servicio', 'Estado', 'Creada', 'Asignada a']],
+      body: datos.ordenes.length
+        ? datos.ordenes.map((o) => [`#${o.id}`, o.servicio, o.estado, o.creada, o.asignadoA ?? '—'])
+        : [['—', 'Sin órdenes en el período', '—', '—', '—']],
+      theme: 'striped',
+      headStyles: { fillColor: AZUL, textColor: 255 },
+      styles: { fontSize: 9, cellPadding: 2.5 },
+      columnStyles: { 0: { cellWidth: 14 } },
+    });
+  }
 
   // Pie con numero de pagina en todas las hojas.
   const paginas = doc.getNumberOfPages();
