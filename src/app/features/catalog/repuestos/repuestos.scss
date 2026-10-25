@@ -1,58 +1,37 @@
-.tarjeta-repuestos {
-  max-width: var(--df-ancho-contenido);
-  margin: 0 auto;
+.tabla-tarjeta {
+  overflow: hidden;
 }
 
-.barra-acciones {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
+.tabla-tarjeta .contenedor-tabla {
+  border: none;
+  border-radius: 0;
 }
 
-.separador {
-  flex: 1 1 auto;
-}
-
-.contenedor-tabla {
-  overflow-x: auto;
+.formulario {
+  padding: 20px;
+  margin-bottom: 16px;
 }
 
 .tabla-repuestos {
-  width: 100%;
   min-width: 680px;
 }
 
-.derecha {
-  text-align: right;
-}
-
-.error {
-  color: var(--mat-sys-error);
-  margin: 1rem 0;
-}
-
-.aviso {
-  color: var(--mat-sys-primary);
-  margin: 0.5rem 0 1rem;
-}
-
-.vacio {
-  color: var(--mat-sys-on-surface-variant);
-  margin: 1.5rem 0;
+.codigo {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--df-primary);
 }
 
 .confirmar {
   font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--df-texto-suave);
   margin-right: 0.25rem;
 }
 
-/* HU-19: quien mira la tabla tiene que ver de inmediato lo que esta por
-   agotarse, sin leer numero por numero. */
+/* HU-19: lo que esta por agotarse se ve de inmediato, sin leer numero por numero. */
 .tabla-repuestos tr.bajo-minimo td {
-  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+  background: color-mix(in srgb, var(--df-peligro) 8%, transparent);
 }
 
 .icono-minimo {
@@ -61,22 +40,17 @@
   width: 1.05rem;
   vertical-align: text-bottom;
   margin-left: 0.25rem;
-  color: var(--mat-sys-error);
+  color: var(--df-peligro);
 }
 
 .alerta-minimo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0.5rem 0 1rem;
-  padding: 0.6rem 0.9rem;
-  border-radius: 0.6rem;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: var(--df-radio-chico);
   color: var(--mat-sys-on-error-container);
-  background: var(--mat-sys-error-container);
-}
-
-.alerta-minimo mat-icon {
-  font-size: 1.2rem;
-  height: 1.2rem;
-  width: 1.2rem;
+  background: var(--df-peligro-suave);
+  font-weight: 500;
 }
