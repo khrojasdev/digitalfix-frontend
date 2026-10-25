@@ -1,0 +1,32 @@
+.tarjeta {
+  overflow: hidden;
+}
+
+.sin-borde {
+  border: none;
+  border-radius: 0;
+}
+
+.numero {
+  font-weight: 700;
+  color: var(--df-primary);
+}
+
+.servicio {
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+}
+
+.comentario {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boton-estado {
+  min-height: 32px;
+  height: 32px;
+  font-size: 13px;
+}
