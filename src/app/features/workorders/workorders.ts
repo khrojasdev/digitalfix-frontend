@@ -172,6 +172,7 @@ export class Workorders implements OnInit {
     this.service.cambiarEstado(orden.id, nuevo).subscribe({
       next: (actualizada) => {
         this.ordenes.update((lista) => lista.map((o) => (o.id === actualizada.id ? actualizada : o)));
+        this.ajustarPagina();
         this.cambiando.set(null);
         this.avisar(`Orden #${orden.id}: ${NOMBRE_ESTADO[nuevo]}.`);
       },
@@ -197,6 +198,17 @@ export class Workorders implements OnInit {
         o.fechaActualizacion,
       ]),
     );
+  }
+
+  /**
+   * Si la pagina actual quedo vacia (por ejemplo, la orden cambio de estado y
+   * salio del filtro activo), vuelve a la ultima pagina con filas.
+   */
+  private ajustarPagina(): void {
+    const ultima = Math.max(0, Math.ceil(this.filtradas().length / this.tamano()) - 1);
+    if (this.pagina() > ultima) {
+      this.pagina.set(ultima);
+    }
   }
 
   private avisar(texto: string): void {

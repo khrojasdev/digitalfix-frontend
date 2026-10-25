@@ -103,6 +103,19 @@ describe('Workorders', () => {
     expect(c.ordenes().find((o: any) => o.id === 1).estado).toBe('ASIGNADA');
   });
 
+  it('si la orden sale del filtro y la página queda vacía, vuelve a una con filas', async () => {
+    await configurar();
+    cargar();
+    const c = fixture.componentInstance as any;
+    c.tamano.set(1);
+    c.actualizarFiltro({ estado: 'CREADA' });
+    expect(c.filtradas()).toHaveLength(1);
+    c.cambiarEstado(ORDENES[0], 'ASIGNADA');
+    http.expectOne((r) => r.url.startsWith(`${base}/api/workorders/1/estado`)).flush({ ...ORDENES[0], estado: 'ASIGNADA' });
+    expect(c.filtradas()).toHaveLength(0);
+    expect(c.pagina()).toBe(0);
+  });
+
   it('un AUDITOR no ve el botón de nueva orden', async () => {
     await configurar(['AUDITOR']);
     cargar(['AUDITOR']);
