@@ -14,6 +14,8 @@ import { Orden, OrdenesService, mensajeOrdenes } from './ordenes.service';
 export interface DatosNuevaOrden {
   /** Servicios activos del catalogo, para elegir cual se solicita. */
   servicios: Servicio[];
+  /** Si el catalogo no se pudo leer, el motivo; se muestra en vez de "no hay servicios". */
+  errorCatalogo?: string | null;
 }
 
 /**
@@ -40,7 +42,9 @@ export interface DatosNuevaOrden {
       <mat-dialog-content>
         <p class="texto-suave ayuda">Elige el servicio que se va a realizar. La orden queda en estado <b>Creada</b>.</p>
 
-        @if (datos.servicios.length === 0) {
+        @if (datos.errorCatalogo) {
+          <div class="mensaje mensaje--error">{{ datos.errorCatalogo }}</div>
+        } @else if (datos.servicios.length === 0) {
           <div class="mensaje mensaje--error">No hay servicios activos en el catálogo. Activa o crea uno primero.</div>
         }
 
