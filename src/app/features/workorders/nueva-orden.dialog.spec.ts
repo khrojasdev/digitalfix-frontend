@@ -64,4 +64,23 @@ describe('NuevaOrdenDialog', () => {
     expect(c.error()).toBe('El ID del servicio es obligatorio');
     expect(cerrar).not.toHaveBeenCalled();
   });
+
+  it('si el catálogo no se pudo leer, muestra el motivo y no dice que no hay servicios', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [NuevaOrdenDialog],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: MatDialogRef, useValue: { close: cerrar } },
+        { provide: MAT_DIALOG_DATA, useValue: { servicios: [], errorCatalogo: 'Tu usuario no tiene permiso para leer el catálogo.' } },
+      ],
+    }).compileComponents();
+    http = TestBed.inject(HttpTestingController);
+    const f = TestBed.createComponent(NuevaOrdenDialog);
+    f.detectChanges();
+    const texto = (f.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('no tiene permiso');
+    expect(texto).not.toContain('No hay servicios activos');
+  });
 });

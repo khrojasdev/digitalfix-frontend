@@ -17,7 +17,7 @@
         Exportar CSV
       </button>
       @if (puedeCrear$ | async) {
-        <button mat-flat-button type="button" (click)="nuevaOrden()" [disabled]="cargando()">
+        <button mat-flat-button type="button" (click)="nuevaOrden()" [disabled]="cargando() || abriendo()">
           <mat-icon>add</mat-icon>
           Nueva orden
         </button>

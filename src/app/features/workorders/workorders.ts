@@ -13,7 +13,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { catchError, forkJoin, of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
 
 import { AuthContextService } from '../../core/auth/auth-context.service';
 import { descargarCsv, fechaParaArchivo } from '../../core/util/exportar-csv';
@@ -78,6 +79,9 @@ export class Workorders implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly ordenes = signal<Orden[]>([]);
   protected readonly servicios = signal<Servicio[]>([]);
+  /** Por que no se pudo leer el catalogo; null si se leyo bien. */
+  protected readonly errorCatalogo = signal<string | null>(null);
+  protected readonly abriendo = signal(false);
   protected readonly cambiando = signal<number | null>(null);
 
   protected readonly filtro = signal<FiltroOrdenes>({ ...FILTRO_VACIO });
@@ -112,15 +116,13 @@ export class Workorders implements OnInit {
   protected cargar(): void {
     this.cargando.set(true);
     this.error.set(null);
-    forkJoin({
-      ordenes: this.service.listar(),
-      // Los nombres de servicio son un extra: si el catalogo falla, la lista
-      // de ordenes se muestra igual con el numero de servicio.
-      servicios: this.catalogo.listarServicios(0, 500, false).pipe(catchError(() => of(null))),
-    }).subscribe({
-      next: ({ ordenes, servicios }) => {
+    // Ordenes y servicios se cargan por separado: antes iban en un forkJoin y,
+    // si fallaba una de las dos, la otra quedaba vacia. Eso hacia que el
+    // dialogo de nueva orden dijera "no hay servicios" aunque el catalogo si
+    // tuviera, cuando lo que fallaba era el listado de ordenes (o al reves).
+    this.service.listar().subscribe({
+      next: (ordenes) => {
         this.ordenes.set(ordenes ?? []);
-        this.servicios.set(servicios?.content ?? []);
         this.cargando.set(false);
       },
       error: (e: unknown) => {
@@ -128,6 +130,19 @@ export class Workorders implements OnInit {
         this.cargando.set(false);
       },
     });
+    this.pedirServicios().subscribe({
+      next: (servicios) => this.servicios.set(servicios),
+      error: () => undefined,
+    });
+  }
+
+  /** Pide el catalogo y deja anotado el motivo si no se puede leer. */
+  private pedirServicios(): Observable<Servicio[]> {
+    this.errorCatalogo.set(null);
+    return this.catalogo.listarServicios(0, 100, false).pipe(
+      map((pagina) => pagina?.content ?? []),
+      tap({ error: (e: unknown) => this.errorCatalogo.set(mensajeCatalogo(e)) }),
+    );
   }
 
   protected nombreServicio(id: number): string {
@@ -155,8 +170,29 @@ export class Workorders implements OnInit {
   }
 
   protected nuevaOrden(): void {
+    // Si al cargar la pagina no llegaron servicios, se vuelve a pedir el
+    // catalogo antes de abrir: puede haber sido un fallo puntual.
+    if (this.serviciosActivos().length > 0) {
+      this.abrirDialogo();
+      return;
+    }
+    this.abriendo.set(true);
+    this.pedirServicios().subscribe({
+      next: (servicios) => {
+        this.servicios.set(servicios);
+        this.abriendo.set(false);
+        this.abrirDialogo();
+      },
+      error: () => {
+        this.abriendo.set(false);
+        this.abrirDialogo();
+      },
+    });
+  }
+
+  private abrirDialogo(): void {
     const ref = this.dialogo.open<NuevaOrdenDialog, DatosNuevaOrden>(NuevaOrdenDialog, {
-      data: { servicios: this.serviciosActivos() },
+      data: { servicios: this.serviciosActivos(), errorCatalogo: this.errorCatalogo() },
       autoFocus: 'first-tabbable',
     });
     ref.afterClosed().subscribe((orden: Orden | undefined) => {
@@ -214,4 +250,18 @@ export class Workorders implements OnInit {
   private avisar(texto: string): void {
     this.aviso.open(texto, 'Cerrar', { duration: 4000 });
   }
+}
+
+/** Mensaje para la persona cuando no se puede leer el catalogo. */
+export function mensajeCatalogo(error: unknown): string {
+  if (error instanceof HttpErrorResponse) {
+    if (error.status === 0) return 'No hay conexión con el servidor para leer el catálogo.';
+    if (error.status === 401) return 'La sesión expiró. Vuelve a iniciar sesión.';
+    if (error.status === 403) {
+      return 'Tu usuario no tiene permiso para leer el catálogo. Revisa el rol asignado a tu cuenta en Entra ID.';
+    }
+    if (error.status === 503) return 'El catálogo no está disponible en este momento. Intenta de nuevo en unos segundos.';
+    return `No se pudo leer el catálogo (error ${error.status}).`;
+  }
+  return 'No se pudo leer el catálogo.';
 }

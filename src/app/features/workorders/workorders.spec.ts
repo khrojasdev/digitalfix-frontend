@@ -3,7 +3,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
-import { Workorders } from './workorders';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { Workorders, mensajeCatalogo } from './workorders';
 import { environment } from '../../../environments/environment';
 import { cuentaDePrueba, proveedoresMsalDePrueba } from '../../../testing/msal-doble';
 
@@ -126,5 +128,53 @@ describe('Workorders', () => {
     await configurar(['ADMIN']);
     cargar(['ADMIN']);
     expect(texto()).toContain('Nueva orden');
+  });
+  it('si falla el listado de órdenes, los servicios del catálogo igual quedan disponibles', async () => {
+    await configurar(['ADMIN']);
+    fixture.detectChanges();
+    http.match((r) => r.url.endsWith('/api/me')).forEach((r) =>
+      r.flush({ oid: 'o', email: 'e', name: 'n', companyId: '1', companyName: 'E', roles: ['ADMIN'] }),
+    );
+    http.expectOne(`${base}/api/workorders`).flush({ mensaje: 'caido' }, { status: 503, statusText: 'Service Unavailable' });
+    http.expectOne((r) => r.url === `${base}/api/catalog/services`).flush(SERVICIOS);
+    fixture.detectChanges();
+
+    const componente = fixture.componentInstance as unknown as { serviciosActivos: () => unknown[]; error: () => string | null };
+    expect(componente.serviciosActivos().length).toBe(2);
+    expect(componente.error()).toContain('no está disponible');
+  });
+
+  it('si el catálogo no se puede leer, guarda el motivo en vez de dar la lista por vacía', async () => {
+    await configurar(['ADMIN']);
+    fixture.detectChanges();
+    http.match((r) => r.url.endsWith('/api/me')).forEach((r) =>
+      r.flush({ oid: 'o', email: 'e', name: 'n', companyId: '1', companyName: 'E', roles: ['ADMIN'] }),
+    );
+    http.expectOne(`${base}/api/workorders`).flush(ORDENES);
+    http.expectOne((r) => r.url === `${base}/api/catalog/services`).flush(null, { status: 403, statusText: 'Forbidden' });
+    fixture.detectChanges();
+
+    const componente = fixture.componentInstance as unknown as { errorCatalogo: () => string | null };
+    expect(componente.errorCatalogo()).toContain('permiso');
+  });
+
+  it('pide el catálogo con un tamaño de página razonable', async () => {
+    await configurar(['ADMIN']);
+    fixture.detectChanges();
+    http.match((r) => r.url.endsWith('/api/me')).forEach((r) => r.flush(null));
+    http.expectOne(`${base}/api/workorders`).flush(ORDENES);
+    const pedido = http.expectOne((r) => r.url === `${base}/api/catalog/services`);
+    expect(pedido.request.params.get('size')).toBe('100');
+    pedido.flush(SERVICIOS);
+  });
+});
+
+describe('mensajeCatalogo', () => {
+  const err = (status: number) => new HttpErrorResponse({ status });
+  it('explica cada causa en lenguaje claro', () => {
+    expect(mensajeCatalogo(err(403))).toContain('permiso');
+    expect(mensajeCatalogo(err(503))).toContain('no está disponible');
+    expect(mensajeCatalogo(err(0))).toContain('conexión');
+    expect(mensajeCatalogo(err(500))).toContain('500');
   });
 });
