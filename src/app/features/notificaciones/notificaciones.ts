@@ -10,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
-import { forkJoin } from 'rxjs';
 
 import { ESTADOS, NOMBRE_ESTADO } from '../workorders/ordenes.service';
 import { NotificacionesService } from './notificaciones.service';
@@ -21,7 +20,8 @@ import { Aviso, AvisoStock } from './notificaciones.models';
  *
  * Muestra lo que notify genera al consumir la mensajeria: avisos de cambio de
  * estado de las ordenes (exchange topic) y avisos de stock bajo minimo
- * (exchange direct). Las dos listas se piden a la vez con forkJoin.
+ * (exchange direct). Las dos listas se piden por separado: si una falla,
+ * la otra se muestra igual.
  */
 @Component({
   selector: 'app-notificaciones',
@@ -45,6 +45,8 @@ export class Notificaciones implements OnInit {
 
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** Motivo por el que no se pudieron leer las alertas de stock (solo afecta esa tarjeta). */
+  protected readonly errorStock = signal<string | null>(null);
 
   protected readonly avisos = signal<Aviso[]>([]);
   protected readonly avisosStock = signal<AvisoStock[]>([]);
@@ -86,19 +88,27 @@ export class Notificaciones implements OnInit {
   protected cargar(): void {
     this.cargando.set(true);
     this.error.set(null);
+    this.errorStock.set(null);
 
-    forkJoin({
-      avisos: this.notificaciones.listarAvisos(),
-      stock: this.notificaciones.listarAvisosStock(),
-    }).subscribe({
-      next: ({ avisos, stock }) => {
+    // Antes iban en un forkJoin: si /api/avisos/stock fallaba (por ejemplo, un
+    // notify desplegado sin el consumidor de stock responde 404), se perdian
+    // tambien los avisos de ordenes, que si habian llegado.
+    this.notificaciones.listarAvisos().subscribe({
+      next: (avisos) => {
         this.avisos.set(avisos ?? []);
-        this.avisosStock.set(stock ?? []);
         this.cargando.set(false);
       },
       error: (e: unknown) => {
         this.error.set(this.mensaje(e));
         this.cargando.set(false);
+      },
+    });
+
+    this.notificaciones.listarAvisosStock().subscribe({
+      next: (stock) => this.avisosStock.set(stock ?? []),
+      error: (e: unknown) => {
+        this.avisosStock.set([]);
+        this.errorStock.set(this.mensajeStock(e));
       },
     });
   }
@@ -135,6 +145,16 @@ export class Notificaciones implements OnInit {
       }
     }
     return 'No se pudieron cargar las notificaciones.';
+  }
+
+  private mensajeStock(error: unknown): string {
+    if (error instanceof HttpErrorResponse && error.status === 404) {
+      return 'Las alertas de stock no están disponibles: el servicio de notificaciones desplegado no tiene esa función.';
+    }
+    if (error instanceof HttpErrorResponse && error.status === 503) {
+      return 'Las alertas de stock no están disponibles en este momento.';
+    }
+    return 'No se pudieron cargar las alertas de stock.';
   }
 }
 

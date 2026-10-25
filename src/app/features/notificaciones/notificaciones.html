@@ -113,7 +113,9 @@
         Stock bajo mínimo
         <span class="etiqueta etiqueta--peligro">{{ stockVisibles().length }}</span>
       </h2>
-      @if (hayStock()) {
+      @if (errorStock()) {
+        <div class="mensaje mensaje--error" role="alert"><mat-icon>error_outline</mat-icon>{{ errorStock() }}</div>
+      } @else if (hayStock()) {
         <div class="contenedor-tabla">
           <table mat-table [dataSource]="stockVisibles()">
             <ng-container matColumnDef="sku">
