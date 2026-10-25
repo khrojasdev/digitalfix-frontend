@@ -31,11 +31,28 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="filtro-busqueda" subscriptSizing="dynamic">
-      <mat-label>Autor (oid)</mat-label>
+      <mat-label>Usuario</mat-label>
       <mat-icon matPrefix>person_search</mat-icon>
-      <input matInput name="autor" [ngModel]="filtro().autorId" (ngModelChange)="actualizarFiltro({ autorId: $event })"
-             placeholder="Identificador del usuario en Entra ID" />
+      <input matInput name="usuario" [ngModel]="textoUsuario()" (ngModelChange)="escribirUsuario($event)"
+             [matAutocomplete]="autoUsuarios" placeholder="Nombre, correo u oid" autocomplete="off" />
+      <mat-autocomplete #autoUsuarios="matAutocomplete" (optionSelected)="elegirUsuario($event.option.value)">
+        @for (p of sugerencias(); track p.oid) {
+          <mat-option [value]="p.oid">
+            <span>{{ etiqueta(p.oid) }}</span>
+            @if (p.email && p.nombre) {
+              <small class="texto-suave"> · {{ p.email }}</small>
+            }
+          </mat-option>
+        }
+      </mat-autocomplete>
     </mat-form-field>
+
+    @if (miOid()) {
+      <button mat-stroked-button type="button" (click)="misAcciones()" [disabled]="cargando()">
+        <mat-icon>person</mat-icon>
+        Mis acciones
+      </button>
+    }
 
     <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
       <mat-label>Desde</mat-label>
@@ -88,11 +105,11 @@
             <td mat-cell *matCellDef="let e"><b>{{ e.ordenId ? '#' + e.ordenId : '—' }}</b></td>
           </ng-container>
           <ng-container matColumnDef="autorId">
-            <th mat-header-cell *matHeaderCellDef>Autor</th>
+            <th mat-header-cell *matHeaderCellDef>Usuario</th>
             <td mat-cell *matCellDef="let e">
               @if (e.autorId) {
-                <button mat-button type="button" class="mono" [matTooltip]="'Ver solo eventos de ' + e.autorId" (click)="filtrarPorAutor(e.autorId)">
-                  {{ e.autorId.length > 14 ? e.autorId.slice(0, 14) + '…' : e.autorId }}
+                <button mat-button type="button" [matTooltip]="'Ver solo eventos de ' + detalle(e.autorId)" (click)="filtrarPorAutor(e.autorId)">
+                  {{ etiqueta(e.autorId) }}
                 </button>
               } @else {
                 —
