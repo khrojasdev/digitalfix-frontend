@@ -1,0 +1,213 @@
+<section class="pagina">
+  <header class="encabezado-pagina">
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>assignment</mat-icon></span>
+      <div>
+        <h1>Órdenes de trabajo</h1>
+        <p class="subtitulo">Crea órdenes, sigue su avance y cámbiales el estado.</p>
+      </div>
+    </div>
+    <div class="acciones-pagina">
+      <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+      <button mat-stroked-button type="button" (click)="exportar()" [disabled]="filtradas().length === 0">
+        <mat-icon>download</mat-icon>
+        Exportar CSV
+      </button>
+      @if (puedeCrear$ | async) {
+        <button mat-flat-button type="button" (click)="nuevaOrden()" [disabled]="cargando()">
+          <mat-icon>add</mat-icon>
+          Nueva orden
+        </button>
+      }
+    </div>
+  </header>
+
+  <section class="kpis" aria-label="Resumen de órdenes">
+    <div class="kpi kpi--info">
+      <span class="kpi-icono"><mat-icon>assignment</mat-icon></span>
+      <div class="kpi-datos">
+        <span class="kpi-etiqueta">Total</span>
+        <span class="kpi-valor">{{ total() }}</span>
+        <span class="kpi-nota">órdenes de la empresa</span>
+      </div>
+    </div>
+    <div class="kpi kpi--aviso">
+      <span class="kpi-icono"><mat-icon>pending_actions</mat-icon></span>
+      <div class="kpi-datos">
+        <span class="kpi-etiqueta">Abiertas</span>
+        <span class="kpi-valor">{{ abiertas() }}</span>
+        <span class="kpi-nota">creadas, asignadas o en curso</span>
+      </div>
+    </div>
+    <div class="kpi kpi--exito">
+      <span class="kpi-icono"><mat-icon>task_alt</mat-icon></span>
+      <div class="kpi-datos">
+        <span class="kpi-etiqueta">Cerradas</span>
+        <span class="kpi-valor">{{ cerradas() }}</span>
+        <span class="kpi-nota">trabajo terminado</span>
+      </div>
+    </div>
+    <div class="kpi kpi--peligro">
+      <span class="kpi-icono"><mat-icon>block</mat-icon></span>
+      <div class="kpi-datos">
+        <span class="kpi-etiqueta">Canceladas</span>
+        <span class="kpi-valor">{{ canceladas() }}</span>
+        <span class="kpi-nota">no se realizarán</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="filtros" aria-label="Filtros de órdenes">
+    <mat-form-field appearance="outline" class="filtro-busqueda" subscriptSizing="dynamic">
+      <mat-label>Buscar</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="filtro().texto" (ngModelChange)="actualizarFiltro({ texto: $event })"
+             placeholder="N° de orden, servicio o comentario" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Estado</mat-label>
+      <mat-select [ngModel]="filtro().estado" (ngModelChange)="actualizarFiltro({ estado: $event })">
+        <mat-option value="">Todos</mat-option>
+        @for (e of estados; track e) {
+          <mat-option [value]="e">{{ nombreEstado[e] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Servicio</mat-label>
+      <mat-select [ngModel]="filtro().servicioId" (ngModelChange)="actualizarFiltro({ servicioId: $event })">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (s of servicios(); track s.id) {
+          <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Desde</mat-label>
+      <input matInput type="date" [ngModel]="filtro().desde" (ngModelChange)="actualizarFiltro({ desde: $event ?? '' })" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Hasta</mat-label>
+      <input matInput type="date" [ngModel]="filtro().hasta" (ngModelChange)="actualizarFiltro({ hasta: $event ?? '' })" />
+    </mat-form-field>
+
+    @if (filtrando()) {
+      <button mat-button type="button" class="limpiar" (click)="limpiarFiltros()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar
+      </button>
+    }
+  </section>
+
+  @if (filtrando()) {
+    <p class="resumen-filtro">{{ filtradas().length }} de {{ total() }} órdenes coinciden con el filtro.</p>
+  }
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando órdenes"></mat-progress-bar>
+  }
+  @if (error()) {
+    <div class="mensaje mensaje--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ error() }}
+    </div>
+  }
+
+  <div class="tarjeta">
+    @if (filtradas().length > 0) {
+      <div class="contenedor-tabla sin-borde">
+        <table mat-table [dataSource]="visibles()">
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>Orden</th>
+            <td mat-cell *matCellDef="let o"><span class="numero">#{{ o.id }}</span></td>
+          </ng-container>
+
+          <ng-container matColumnDef="servicio">
+            <th mat-header-cell *matHeaderCellDef>Servicio</th>
+            <td mat-cell *matCellDef="let o">
+              <div class="servicio">
+                <span>{{ nombreServicio(o.servicioId) }}</span>
+                @if (o.comentarios) {
+                  <span class="texto-suave comentario" [matTooltip]="o.comentarios">{{ o.comentarios }}</span>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let o">
+              <span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="asignadoA">
+            <th mat-header-cell *matHeaderCellDef>Asignada a</th>
+            <td mat-cell *matCellDef="let o" class="texto-suave">{{ o.asignadoA || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="fechaCreacion">
+            <th mat-header-cell *matHeaderCellDef>Creada</th>
+            <td mat-cell *matCellDef="let o">{{ o.fechaCreacion | date: 'dd-MM-yyyy HH:mm' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="fechaActualizacion">
+            <th mat-header-cell *matHeaderCellDef>Actualizada</th>
+            <td mat-cell *matCellDef="let o" class="texto-suave">
+              {{ o.fechaActualizacion ? (o.fechaActualizacion | date: 'dd-MM-yyyy HH:mm') : '—' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef class="derecha">Acciones</th>
+            <td mat-cell *matCellDef="let o" class="derecha">
+              @if ((puedeGestionar$ | async) && transiciones[o.estado].length > 0) {
+                <button mat-stroked-button type="button" class="boton-estado" [matMenuTriggerFor]="menuEstado"
+                        [disabled]="cambiando() === o.id" [attr.aria-label]="'Cambiar estado de la orden ' + o.id">
+                  <mat-icon>swap_horiz</mat-icon>
+                  Estado
+                </button>
+                <mat-menu #menuEstado="matMenu" xPosition="before">
+                  @for (destino of transiciones[o.estado]; track destino) {
+                    <button mat-menu-item type="button" (click)="cambiarEstado(o, destino)">
+                      <span class="etiqueta etiqueta--{{ destino }}">{{ nombreEstado[destino] }}</span>
+                    </button>
+                  }
+                </mat-menu>
+              } @else {
+                <span class="texto-suave">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+          <tr mat-row *matRowDef="let fila; columns: columnas"></tr>
+        </table>
+      </div>
+      <mat-paginator
+        [length]="filtradas().length"
+        [pageIndex]="pagina()"
+        [pageSize]="tamano()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="cambiarPagina($event)"
+        aria-label="Páginas de órdenes">
+      </mat-paginator>
+    } @else if (!cargando()) {
+      <div class="vacio">
+        <mat-icon>{{ filtrando() ? 'filter_alt' : 'assignment' }}</mat-icon>
+        @if (filtrando()) {
+          <span>Ninguna orden coincide con el filtro.</span>
+        } @else {
+          <span>Todavía no hay órdenes registradas.</span>
+        }
+      </div>
+    }
+  </div>
+</section>
