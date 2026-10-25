@@ -33,7 +33,15 @@
             "styles": ["src/styles.scss"],
             "security": {
               "allowedHosts": []
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "canvg",
+              "core-js",
+              "dompurify",
+              "html2canvas",
+              "raf",
+              "rgbcolor"
+            ]
           },
           "configurations": {
             "production": {

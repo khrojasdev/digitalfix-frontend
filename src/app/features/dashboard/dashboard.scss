@@ -1,113 +1,69 @@
-.encabezado {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 20px;
+/* Seis indicadores: 3 x 2 en pantalla ancha, sin una tarjeta huerfana. */
+@media (min-width: 1100px) {
+  .kpis {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-h1 {
+.bloque {
+  padding: 20px;
+  min-width: 0;
+}
+
+.recientes {
+  list-style: none;
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
+  padding: 0;
 }
 
-.subtitulo {
-  margin: 4px 0 0;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-}
-
-/* Se adapta solo: cuatro indicadores en ancho, dos o uno cuando no caben. */
-.tarjetas {
+.recientes li {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: 56px 1fr auto 82px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--df-borde);
+  font-size: 13.5px;
 }
 
-.indicador mat-card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 8px;
+.recientes li:last-child {
+  border-bottom: none;
 }
 
-.etiqueta {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.6);
+.numero {
+  font-weight: 700;
+  color: var(--df-primary);
 }
 
-.cifra {
-  font-size: 34px;
-  font-weight: 600;
-  line-height: 1.1;
+.recientes-servicio {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.nota {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-/* El color solo aparece cuando hay algo que mirar: si todo está bien, las
-   cuatro tarjetas se ven iguales y no compiten por la atención. */
-.indicador.atencion {
-  border-left: 4px solid #b45309;
-}
-
-.indicador.critico {
-  border-left: 4px solid #b91c1c;
-}
-
-.indicador.critico .cifra {
-  color: #b91c1c;
-}
-
-.panel-doble {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-  align-items: start;
-}
-
-.tabla {
-  width: 100%;
-}
-
-.derecha {
+.fecha {
   text-align: right;
+  font-size: 12px;
 }
 
 .falta {
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.vacio {
-  color: rgba(0, 0, 0, 0.6);
-  margin: 8px 0;
-}
-
-.error {
-  color: #b91c1c;
-  margin: 12px 0;
+  color: var(--df-peligro);
+  font-weight: 700;
 }
 
 .datos {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 8px 16px;
+  gap: 12px 16px;
   margin: 0;
 }
 
 .datos dt {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
+  color: var(--df-texto-suave);
 }
 
 .datos dd {
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
   text-align: right;
 }

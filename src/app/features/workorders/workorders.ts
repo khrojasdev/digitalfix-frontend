@@ -66,7 +66,7 @@ export class Workorders implements OnInit {
 
   protected readonly estados = ESTADOS;
   // Indexados por string porque en la plantilla la fila de mat-table llega sin tipo.
-  protected readonly nombreEstado: Record<string, string> = NOMBRE_ESTADO;
+  protected readonly nombreEstado: Record<string, string | undefined> = NOMBRE_ESTADO;
   protected readonly transiciones: Record<string, EstadoOrden[]> = TRANSICIONES;
   protected readonly columnas = ['id', 'servicio', 'estado', 'asignadoA', 'fechaCreacion', 'fechaActualizacion', 'acciones'];
 

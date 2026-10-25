@@ -50,7 +50,7 @@ export class Notificaciones implements OnInit {
   protected readonly avisosStock = signal<AvisoStock[]>([]);
 
   protected readonly tipos = ESTADOS;
-  protected readonly nombreTipo: Record<string, string> = NOMBRE_ESTADO;
+  protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_ESTADO;
 
   /** Filtros sobre lo que devolvio notify (las listas llegan completas). */
   protected readonly texto = signal('');

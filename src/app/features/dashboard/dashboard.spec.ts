@@ -31,7 +31,7 @@ describe('Dashboard', () => {
     fixture.detectChanges();
   });
 
-  function responder(servicios: unknown[], totalRepuestos: number, criticos: unknown[]) {
+  function responder(servicios: unknown[], totalRepuestos: number, criticos: unknown[], ordenes: unknown[] = []) {
     http.expectOne((r) => r.url.endsWith('/services')).flush({
       content: servicios,
       totalElements: servicios.length,
@@ -47,6 +47,7 @@ describe('Dashboard', () => {
       size: 1,
     });
     http.expectOne((r) => r.url.endsWith('/parts/low-stock')).flush(criticos);
+    http.expectOne((r) => r.url.endsWith('/api/workorders')).flush(ordenes);
   }
 
   it('se crea', () => {
@@ -69,6 +70,31 @@ describe('Dashboard', () => {
       size: 1,
     });
     http.expectOne((r) => r.url.endsWith('/parts/low-stock')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/api/workorders')).flush([]);
+  });
+
+  it('cuenta las órdenes abiertas y cerradas', () => {
+    responder([], 0, [], [
+      { id: 1, servicioId: 1, estado: 'CREADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-01T10:00:00', fechaActualizacion: null },
+      { id: 2, servicioId: 1, estado: 'INICIADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-02T10:00:00', fechaActualizacion: null },
+      { id: 3, servicioId: 1, estado: 'CERRADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-03T10:00:00', fechaActualizacion: null },
+    ]);
+    const c = fixture.componentInstance as any;
+    expect(c.abiertas()).toBe(2);
+    expect(c.cerradas()).toBe(1);
+    expect(c.tasaCierre()).toBe(33);
+    expect(c.recientes()[0].id).toBe(3);
+  });
+
+  it('si las órdenes fallan, el resto del panel se muestra igual', () => {
+    http.expectOne((r) => r.url.endsWith('/services')).flush({ content: [], totalElements: 0, totalPages: 1, number: 0, size: 200 });
+    http.expectOne((r) => r.url.endsWith('/parts')).flush({ content: [], totalElements: 4, totalPages: 1, number: 0, size: 1 });
+    http.expectOne((r) => r.url.endsWith('/parts/low-stock')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/api/workorders')).flush(null, { status: 503, statusText: 'Unavailable' });
+    const c = fixture.componentInstance as any;
+    expect(c.error()).toBeNull();
+    expect(c.ordenes()).toBeNull();
+    expect(c.totalRepuestos()).toBe(4);
   });
 
   it('separa los servicios activos de los dados de baja', async () => {

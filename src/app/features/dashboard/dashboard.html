@@ -1,147 +1,176 @@
 <section class="pagina">
-<header class="encabezado">
-  <div>
-    <h1>Panel</h1>
-    @if (authContext.profile$ | async; as perfil) {
-      <p class="subtitulo">
-        {{ perfil.companyName || 'Tu empresa' }} · {{ perfil.name }}
-      </p>
-    }
-  </div>
-
-  <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
-    <mat-icon>refresh</mat-icon>
-    Actualizar
-  </button>
-</header>
-
-@if (cargando()) {
-  <mat-progress-bar mode="indeterminate" aria-label="Cargando el panel"></mat-progress-bar>
-}
-
-@if (error(); as mensaje) {
-  <p class="error" role="alert">{{ mensaje }}</p>
-}
-
-@if (!cargando() && !error()) {
-  <section class="tarjetas" aria-label="Resumen del catálogo">
-    <mat-card class="indicador">
-      <mat-card-content>
-        <span class="etiqueta">Servicios activos</span>
-        <span class="cifra">{{ serviciosActivos() }}</span>
-        <span class="nota">de {{ totalServicios() }} en el catálogo</span>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="indicador" [class.atencion]="serviciosInactivos() > 0">
-      <mat-card-content>
-        <span class="etiqueta">Servicios dados de baja</span>
-        <span class="cifra">{{ serviciosInactivos() }}</span>
-        <span class="nota">
-          @if (serviciosInactivos() > 0) {
-            se pueden reactivar desde el catálogo
-          } @else {
-            ninguno
-          }
-        </span>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="indicador">
-      <mat-card-content>
-        <span class="etiqueta">Repuestos</span>
-        <span class="cifra">{{ totalRepuestos() }}</span>
-        <span class="nota">referencias en bodega</span>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="indicador" [class.critico]="bajoMinimo().length > 0">
-      <mat-card-content>
-        <span class="etiqueta">Bajo stock mínimo</span>
-        <span class="cifra">{{ bajoMinimo().length }}</span>
-        <span class="nota">
-          @if (bajoMinimo().length > 0) {
-            requieren reposición
-          } @else {
-            todo en nivel
-          }
-        </span>
-      </mat-card-content>
-    </mat-card>
-  </section>
-
-  <section class="panel-doble">
-    <mat-card class="bloque">
-      <mat-card-header>
-        <mat-card-title>Repuestos a reponer</mat-card-title>
-        <mat-card-subtitle>Stock igual o por debajo del mínimo</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        @if (bajoMinimo().length === 0) {
-          <p class="vacio">Ningún repuesto está bajo su mínimo.</p>
+  <header class="encabezado-pagina">
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>dashboard</mat-icon></span>
+      <div>
+        <h1>Panel</h1>
+        @if (authContext.profile$ | async; as perfil) {
+          <p class="subtitulo">{{ saludo() }}, {{ perfil.name }} · {{ perfil.companyName || 'Tu empresa' }}</p>
         } @else {
-          <table mat-table [dataSource]="bajoMinimo()" class="tabla">
-            <ng-container matColumnDef="sku">
-              <th mat-header-cell *matHeaderCellDef>SKU</th>
-              <td mat-cell *matCellDef="let r">{{ r.sku }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Nombre</th>
-              <td mat-cell *matCellDef="let r">{{ r.nombre }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="stock">
-              <th mat-header-cell *matHeaderCellDef class="derecha">Stock</th>
-              <td mat-cell *matCellDef="let r" class="derecha falta">{{ r.stock }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="stockMinimo">
-              <th mat-header-cell *matHeaderCellDef class="derecha">Mínimo</th>
-              <td mat-cell *matCellDef="let r" class="derecha">{{ r.stockMinimo }}</td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="columnasStock"></tr>
-            <tr mat-row *matRowDef="let fila; columns: columnasStock"></tr>
-          </table>
+          <p class="subtitulo">Resumen de la operación de tu empresa.</p>
         }
-      </mat-card-content>
+      </div>
+    </div>
+    <div class="acciones-pagina">
+      <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+      <a mat-flat-button routerLink="/workorders">
+        <mat-icon>assignment</mat-icon>
+        Ir a órdenes
+      </a>
+    </div>
+  </header>
 
-      <mat-card-actions>
-        <a mat-button routerLink="/catalog/repuestos">
-          <mat-icon>inventory_2</mat-icon>
-          Ir a repuestos
-        </a>
-      </mat-card-actions>
-    </mat-card>
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando el panel"></mat-progress-bar>
+  }
 
-    <mat-card class="bloque">
-      <mat-card-header>
-        <mat-card-title>Catálogo</mat-card-title>
-        <mat-card-subtitle>Lo que tu empresa puede ofrecer hoy</mat-card-subtitle>
-      </mat-card-header>
+  @if (error(); as mensaje) {
+    <div class="mensaje mensaje--error" role="alert"><mat-icon>error_outline</mat-icon>{{ mensaje }}</div>
+  }
 
-      <mat-card-content>
+  @if (!cargando() && !error()) {
+    <section class="kpis" aria-label="Resumen">
+      <div class="kpi kpi--aviso">
+        <span class="kpi-icono"><mat-icon>pending_actions</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Órdenes abiertas</span>
+          <span class="kpi-valor">{{ ordenes() === null ? '—' : abiertas() }}</span>
+          <span class="kpi-nota">creadas, asignadas o en curso</span>
+        </div>
+      </div>
+      <div class="kpi kpi--exito">
+        <span class="kpi-icono"><mat-icon>task_alt</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Órdenes cerradas</span>
+          <span class="kpi-valor">{{ ordenes() === null ? '—' : cerradas() }}</span>
+          <span class="kpi-nota">{{ tasaCierre() }}% del total</span>
+        </div>
+      </div>
+      <div class="kpi kpi--info">
+        <span class="kpi-icono"><mat-icon>design_services</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Servicios activos</span>
+          <span class="kpi-valor">{{ serviciosActivos() }}</span>
+          <span class="kpi-nota">de {{ totalServicios() }} en el catálogo</span>
+        </div>
+      </div>
+      <div class="kpi" [class.kpi--aviso]="serviciosInactivos() > 0">
+        <span class="kpi-icono"><mat-icon>block</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Servicios dados de baja</span>
+          <span class="kpi-valor">{{ serviciosInactivos() }}</span>
+          <span class="kpi-nota">{{ serviciosInactivos() > 0 ? 'se pueden reactivar desde el catálogo' : 'ninguno' }}</span>
+        </div>
+      </div>
+      <div class="kpi kpi--violeta">
+        <span class="kpi-icono"><mat-icon>inventory_2</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Repuestos</span>
+          <span class="kpi-valor">{{ totalRepuestos() }}</span>
+          <span class="kpi-nota">referencias en bodega</span>
+        </div>
+      </div>
+      <div class="kpi" [class.kpi--peligro]="bajoMinimo().length > 0" [class.kpi--exito]="bajoMinimo().length === 0">
+        <span class="kpi-icono"><mat-icon>warning</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Bajo stock mínimo</span>
+          <span class="kpi-valor">{{ bajoMinimo().length }}</span>
+          <span class="kpi-nota">{{ bajoMinimo().length > 0 ? 'requieren reposición' : 'todo en nivel' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="rejilla-2">
+      <div class="tarjeta bloque">
+        <h2 class="tarjeta-titulo">Órdenes por estado</h2>
+        @if (ordenes() === null) {
+          <div class="vacio"><mat-icon>cloud_off</mat-icon><span>No se pudieron cargar las órdenes.</span></div>
+        } @else {
+          <div class="barras">
+            @for (b of barrasEstado(); track b.nombre) {
+              <div class="barra-fila">
+                <span class="barra-nombre">{{ b.nombre }}</span>
+                <div class="barra-pista"><div class="barra-relleno" [style.width.%]="b.ancho" [style.--barra-color]="b.color"></div></div>
+                <span class="barra-valor">{{ b.valor }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="tarjeta bloque">
+        <h2 class="tarjeta-titulo">
+          Últimas órdenes
+          <a mat-button routerLink="/workorders">Ver todas</a>
+        </h2>
+        @if (recientes().length === 0) {
+          <div class="vacio"><mat-icon>assignment</mat-icon><span>Todavía no hay órdenes.</span></div>
+        } @else {
+          <ul class="recientes">
+            @for (o of recientes(); track o.id) {
+              <li>
+                <span class="numero">#{{ o.id }}</span>
+                <span class="recientes-servicio">{{ nombreServicio(o.servicioId) }}</span>
+                <span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span>
+                <span class="texto-suave fecha">{{ o.fechaCreacion | date: 'dd-MM HH:mm' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </section>
+
+    <section class="rejilla-2">
+      <div class="tarjeta bloque">
+        <h2 class="tarjeta-titulo">
+          Repuestos a reponer
+          <a mat-button routerLink="/catalog/repuestos">Ir a repuestos</a>
+        </h2>
+        @if (bajoMinimo().length === 0) {
+          <div class="vacio"><mat-icon>check_circle</mat-icon><span>Ningún repuesto está bajo su mínimo.</span></div>
+        } @else {
+          <div class="contenedor-tabla">
+            <table mat-table [dataSource]="bajoMinimo()">
+              <ng-container matColumnDef="sku">
+                <th mat-header-cell *matHeaderCellDef>SKU</th>
+                <td mat-cell *matCellDef="let r"><b>{{ r.sku }}</b></td>
+              </ng-container>
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                <td mat-cell *matCellDef="let r">{{ r.nombre }}</td>
+              </ng-container>
+              <ng-container matColumnDef="stock">
+                <th mat-header-cell *matHeaderCellDef class="derecha">Stock</th>
+                <td mat-cell *matCellDef="let r" class="derecha falta">{{ r.stock }}</td>
+              </ng-container>
+              <ng-container matColumnDef="stockMinimo">
+                <th mat-header-cell *matHeaderCellDef class="derecha">Mínimo</th>
+                <td mat-cell *matCellDef="let r" class="derecha">{{ r.stockMinimo }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="columnasStock"></tr>
+              <tr mat-row *matRowDef="let fila; columns: columnasStock"></tr>
+            </table>
+          </div>
+        }
+      </div>
+
+      <div class="tarjeta bloque">
+        <h2 class="tarjeta-titulo">
+          Catálogo
+          <a mat-button routerLink="/catalog">Ir al catálogo</a>
+        </h2>
         <dl class="datos">
           <dt>Valor de los servicios activos</dt>
           <dd>{{ moneda(valorCatalogo()) }}</dd>
-
           <dt>Servicios publicados</dt>
           <dd>{{ serviciosActivos() }}</dd>
-
           <dt>Servicios fuera de circulación</dt>
           <dd>{{ serviciosInactivos() }}</dd>
         </dl>
-      </mat-card-content>
-
-      <mat-card-actions>
-        <a mat-button routerLink="/catalog">
-          <mat-icon>design_services</mat-icon>
-          Ir al catálogo
-        </a>
-      </mat-card-actions>
-    </mat-card>
-  </section>
-}
+      </div>
+    </section>
+  }
 </section>
