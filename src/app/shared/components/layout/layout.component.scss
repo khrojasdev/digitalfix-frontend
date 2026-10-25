@@ -1,42 +1,45 @@
 .sidenav-container {
   height: 100vh;
-  background: var(--mat-sys-surface-container-lowest);
+  background: var(--df-fondo);
 }
 
 /* ============================================================== menu lateral */
 
 .sidenav {
-  width: 264px;
-  border-right: 1px solid var(--df-borde);
-  background: var(--df-superficie);
-  padding-bottom: 16px;
+  width: 258px;
+  border-right: none;
+  background: var(--df-lateral-fondo);
+  color: var(--df-lateral-texto);
+}
+
+.sidenav ::ng-deep .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
 }
 
 .marca {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 18px 16px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--df-borde);
+  padding: 22px 18px 18px;
   text-decoration: none;
-  color: inherit;
+  color: #fff;
 }
 
 .logo-kcd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  height: 32px;
+  min-width: 44px;
+  height: 34px;
   padding: 0 9px;
-  border-radius: var(--df-radio-chico);
-  background: var(--df-primary);
-  color: var(--df-on-primary);
-  font-weight: 700;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--df-acento), #f6a15a);
+  color: #fff;
+  font-weight: 800;
   font-size: 14px;
-  /* Sin esto las tres letras se ven apelmazadas a este tamano. */
   letter-spacing: 1.6px;
+  box-shadow: 0 6px 14px -6px rgba(234, 122, 31, 0.8);
 }
 
 .marca-texto {
@@ -46,85 +49,98 @@
 }
 
 .marca-nombre {
-  font-weight: 600;
-  font-size: 15.5px;
+  font-weight: 700;
+  font-size: 16px;
 }
 
 .marca-nota {
   font-size: 11.5px;
-  color: var(--df-texto-suave);
+  color: var(--df-lateral-suave);
 }
 
 .menu {
-  padding: 4px 10px;
+  flex: 1 1 auto;
+  padding: 4px 12px;
 }
 
 .menu-titulo {
-  margin: 14px 8px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
+  margin: 18px 10px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: var(--df-texto-suave);
+  color: var(--df-lateral-suave);
 }
 
-/* Enlaces propios y no mat-list-item: hacen falta tres cosas a la vez —icono,
-   texto y una etiqueta a la derecha— y pelear con el interior del componente
-   de Material para conseguirlo sale mas caro que escribir la fila. */
 .item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
-  margin-bottom: 2px;
-  border-radius: var(--df-radio-chico);
-  color: var(--df-texto);
+  padding: 10px 12px;
+  margin-bottom: 3px;
+  border-radius: 10px;
+  color: var(--df-lateral-texto);
   text-decoration: none;
   font-size: 14px;
-  transition: background 0.15s ease;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .item mat-icon {
-  color: var(--df-texto-suave);
   font-size: 20px;
   width: 20px;
   height: 20px;
+  color: var(--df-lateral-suave);
 }
 
 .item:hover {
-  background: color-mix(in srgb, var(--df-primary) 7%, transparent);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
 }
 
 .item.activo {
-  background: color-mix(in srgb, var(--df-primary) 12%, transparent);
-  color: var(--df-primary);
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
   font-weight: 600;
+}
+
+.item.activo::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--df-acento);
 }
 
 .item.activo mat-icon {
-  color: var(--df-primary);
+  color: var(--df-acento);
 }
 
-.pronto {
-  margin-left: auto;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--df-aviso-suave);
-  color: var(--df-aviso);
+.pie-lateral {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 11.5px;
+  color: var(--df-lateral-suave);
+}
+
+.pie-lateral mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--df-acento);
 }
 
 /* ============================================================ barra superior */
 
-/*
-  Barra clara y no de color. Antes era azul con botones de texto encima, y el
-  color del texto lo decidia el tema de Material mientras el del fondo lo
-  decidia una regla propia: el de cerrar sesion terminaba casi invisible.
-  Sobre superficie clara, cualquier boton de Material se ve como debe.
-*/
 .barra {
   position: sticky;
   top: 0;
@@ -132,14 +148,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 64px;
-  padding: 0 20px;
-  background: var(--df-superficie);
+  height: 66px;
+  padding: 0 24px;
+  background: color-mix(in srgb, var(--df-superficie) 88%, transparent);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--df-borde);
-}
-
-.logo-barra {
-  flex: none;
 }
 
 .titulo-barra {
@@ -155,22 +168,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 12px 4px 4px;
+  padding: 4px 14px 4px 4px;
   border-radius: 999px;
-  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--df-borde);
+  background: var(--df-superficie);
 }
 
 .perfil-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--df-primary);
-  color: var(--df-on-primary);
+  background: linear-gradient(135deg, var(--df-primary), #4f8bd6);
+  color: #fff;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .perfil-datos {
@@ -181,7 +195,7 @@
 
 .perfil-nombre {
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .perfil-empresa {
@@ -189,12 +203,6 @@
   color: var(--df-texto-suave);
 }
 
-.boton-salir {
-  flex: none;
-}
-
-/* En pantalla angosta sobra el texto antes que el icono: el boton se queda
-   redondo y sigue siendo pulsable con el pulgar. */
 @media (max-width: 767px) {
   .texto-salir,
   .perfil-datos {
