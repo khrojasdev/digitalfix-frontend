@@ -25,3 +25,28 @@
 .generar-texto p {
   margin: 0;
 }
+
+.encabezado-tarjeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filtros-ordenes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  mat-form-field {
+    width: 190px;
+  }
+}
+
+.subtitulo .etiqueta {
+  margin-left: 6px;
+  vertical-align: middle;
+}
