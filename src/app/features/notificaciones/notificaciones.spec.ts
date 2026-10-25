@@ -48,4 +48,20 @@ describe('Notificaciones', () => {
     expect(c.avisosVisibles().map((a: any) => a.ordenId)).toEqual([8]);
     expect(c.stockVisibles()).toHaveLength(1);
   });
+
+  it('si /api/avisos/stock falla, los avisos de órdenes se muestran igual', () => {
+    const c = fixture.componentInstance as any;
+    c.cargar();
+    http.expectOne(`${base}/api/avisos`).flush([
+      { ordenId: 6, tipoEvento: 'CREADA', mensaje: 'Se creo la orden #6.', empresaId: 1, fechaEvento: '2026-10-25T22:31:23', fechaAviso: '2026-10-25T22:31:23' },
+    ]);
+    http.expectOne(`${base}/api/avisos/stock`).flush({ error: 'ruta_no_encontrada' }, { status: 404, statusText: 'Not Found' });
+    fixture.detectChanges();
+
+    expect(c.avisosVisibles().map((a: any) => a.ordenId)).toEqual([6]);
+    expect(c.error()).toBeNull();
+    expect(c.errorStock()).toContain('no están disponibles');
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('Se creo la orden #6.');
+  });
 });
