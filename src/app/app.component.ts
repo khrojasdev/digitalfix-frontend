@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router'; // <-- 1. Importa Router
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
 import { EventMessage, EventType, AuthenticationResult } from '@azure/msal-browser';
 import { filter } from 'rxjs/operators';
+
+import { TemaService } from './core/ui/tema.service';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +15,10 @@ import { filter } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
   title = 'digitalfix-frontend';
+
+  // Se instancia en la raiz para que el tema guardado (o el del sistema) se
+  // aplique en todas las pantallas, tambien en el inicio de sesion.
+  private readonly tema = inject(TemaService);
 
   constructor(
     private msalService: MsalService,
