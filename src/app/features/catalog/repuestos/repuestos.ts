@@ -1,13 +1,18 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 
+import { descargarCsv, fechaParaArchivo } from '../../../core/util/exportar-csv';
 import { CatalogoService } from '../catalogo.service';
 import { Repuesto } from '../catalogo.models';
 import { mensajeDeError } from '../mensaje-error';
@@ -17,6 +22,10 @@ import { RepuestoForm } from './repuesto-form';
 @Component({
   selector: 'app-repuestos',
   imports: [
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     MatTableModule,
     MatCardModule,
     MatButtonModule,
@@ -51,6 +60,19 @@ export class Repuestos implements OnInit {
       viene ordenado por stock ascendente: lo mas urgente arriba. */
   protected readonly soloBajoMinimo = signal(false);
   protected readonly cuantosBajoMinimo = signal(0);
+
+  /** Busqueda y estado se aplican sobre lo cargado; "solo bajo minimo" va al servidor. */
+  protected readonly texto = signal('');
+  protected readonly estado = signal<'todos' | 'activos' | 'inactivos'>('todos');
+  protected readonly visibles = computed(() => {
+    const texto = sinTildes(this.texto());
+    const estado = this.estado();
+    return this.repuestos().filter((r) => {
+      if (estado === 'activos' && !r.activo) return false;
+      if (estado === 'inactivos' && r.activo) return false;
+      return !texto || sinTildes(`${r.sku} ${r.nombre}`).includes(texto);
+    });
+  });
 
   ngOnInit(): void {
     this.cargar();
@@ -163,6 +185,14 @@ export class Repuestos implements OnInit {
     });
   }
 
+  protected exportar(): void {
+    descargarCsv(
+      `repuestos-${fechaParaArchivo()}.csv`,
+      ['SKU', 'Nombre', 'Stock', 'Stock mínimo', 'Costo unitario', 'Activo', 'Bajo mínimo'],
+      this.visibles().map((r) => [r.sku, r.nombre, r.stock, r.stockMinimo, r.costoUnitario, r.activo ? 'Sí' : 'No', r.bajoMinimo ? 'Sí' : 'No']),
+    );
+  }
+
   protected moneda(valor: number | null): string {
     if (valor === null || valor === undefined) {
       return '—';
@@ -173,4 +203,8 @@ export class Repuestos implements OnInit {
       maximumFractionDigits: 0,
     }).format(valor);
   }
+}
+
+function sinTildes(valor: string): string {
+  return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }

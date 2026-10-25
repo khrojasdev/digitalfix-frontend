@@ -1,7 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -23,6 +26,9 @@ import { ServicioForm } from './servicio-form/servicio-form';
 @Component({
   selector: 'app-catalog',
   imports: [
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatTableModule,
     MatCardModule,
     MatButtonModule,
@@ -63,6 +69,18 @@ export class Catalog implements OnInit {
   protected readonly confirmando = signal<number | null>(null);
   protected readonly aviso = signal<string | null>(null);
 
+  /**
+   * Busqueda y rango de tarifa. El catalogo pagina en el servidor y no acepta
+   * busqueda, asi que este filtro trabaja sobre la pagina cargada (se puede
+   * subir a 100 por pagina). "Solo activos" si va al servidor.
+   */
+  protected readonly filtro = signal<FiltroCatalogo>({ texto: '', tarifaMin: null, tarifaMax: null });
+  protected readonly filtrando = computed(() => {
+    const f = this.filtro();
+    return !!f.texto.trim() || f.tarifaMin !== null || f.tarifaMax !== null;
+  });
+  protected readonly visibles = computed(() => filtrarServicios(this.servicios(), this.filtro()));
+
   ngOnInit(): void {
     this.cargar();
   }
@@ -91,6 +109,14 @@ export class Catalog implements OnInit {
     this.pagina.set(evento.pageIndex);
     this.tamano.set(evento.pageSize);
     this.cargar();
+  }
+
+  protected actualizarFiltro(cambio: Partial<FiltroCatalogo>): void {
+    this.filtro.update((f) => ({ ...f, ...normalizarTarifas(cambio) }));
+  }
+
+  protected limpiarFiltros(): void {
+    this.filtro.set({ texto: '', tarifaMin: null, tarifaMax: null });
   }
 
   protected alternarActivos(soloActivos: boolean): void {
@@ -170,4 +196,37 @@ export class Catalog implements OnInit {
       maximumFractionDigits: 0,
     }).format(valor);
   }
+}
+
+export interface FiltroCatalogo {
+  texto: string;
+  tarifaMin: number | null;
+  tarifaMax: number | null;
+}
+
+/** Filtra servicios por texto (codigo, nombre, descripcion; sin tildes) y rango de tarifa. */
+export function filtrarServicios(servicios: Servicio[], filtro: FiltroCatalogo): Servicio[] {
+  const texto = sinTildes(filtro.texto);
+  return servicios.filter((s) => {
+    if (filtro.tarifaMin !== null && s.tarifa < filtro.tarifaMin) return false;
+    if (filtro.tarifaMax !== null && s.tarifa > filtro.tarifaMax) return false;
+    if (texto && !sinTildes(`${s.codigo} ${s.nombre} ${s.descripcion ?? ''}`).includes(texto)) return false;
+    return true;
+  });
+}
+
+// Un input numerico vacio llega como null o como cadena vacia: ambos = sin limite.
+function normalizarTarifas(cambio: Partial<FiltroCatalogo>): Partial<FiltroCatalogo> {
+  const salida = { ...cambio };
+  for (const clave of ['tarifaMin', 'tarifaMax'] as const) {
+    if (clave in salida) {
+      const valor = salida[clave] as unknown;
+      salida[clave] = valor === '' || valor === null || valor === undefined || Number.isNaN(Number(valor)) ? null : Number(valor);
+    }
+  }
+  return salida;
+}
+
+function sinTildes(valor: string): string {
+  return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }

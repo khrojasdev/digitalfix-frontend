@@ -1,11 +1,11 @@
 <section class="pagina">
   <header class="encabezado-pagina">
-    <div>
-      <h1>Notificaciones</h1>
-      <p class="subtitulo">
-        Avisos que genera el sistema al consumir la mensajeria: cambios de estado
-        de las ordenes y alertas de stock bajo minimo.
-      </p>
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>notifications</mat-icon></span>
+      <div>
+        <h1>Notificaciones</h1>
+        <p class="subtitulo">Avisos que genera el sistema al consumir la mensajería: cambios de estado y stock bajo mínimo.</p>
+      </div>
     </div>
     <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
       <mat-icon>refresh</mat-icon>
@@ -13,30 +13,80 @@
     </button>
   </header>
 
+  <section class="kpis" aria-label="Resumen de notificaciones">
+    <div class="kpi kpi--info">
+      <span class="kpi-icono"><mat-icon>swap_horiz</mat-icon></span>
+      <div class="kpi-datos">
+        <span class="kpi-etiqueta">Cambios de estado</span>
+        <span class="kpi-valor">{{ avisos().length }}</span>
+        <span class="kpi-nota">avisos de órdenes</span>
+      </div>
+    </div>
+    <div class="kpi kpi--peligro">
+      <span class="kpi-icono"><mat-icon>inventory</mat-icon></span>
+      <div class="kpi-datos">
+        <span class="kpi-etiqueta">Stock bajo mínimo</span>
+        <span class="kpi-valor">{{ avisosStock().length }}</span>
+        <span class="kpi-nota">alertas de repuestos</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="filtros" aria-label="Filtros de notificaciones">
+    <mat-form-field appearance="outline" class="filtro-busqueda" subscriptSizing="dynamic">
+      <mat-label>Buscar</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="texto()" (ngModelChange)="texto.set($event)" placeholder="N° de orden, SKU o texto del aviso" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Evento</mat-label>
+      <mat-select [ngModel]="tipo()" (ngModelChange)="tipo.set($event)">
+        <mat-option value="">Todos</mat-option>
+        @for (t of tipos; track t) {
+          <mat-option [value]="t">{{ nombreTipo[t] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Desde</mat-label>
+      <input matInput type="date" [ngModel]="desde()" (ngModelChange)="desde.set($event ?? '')" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Hasta</mat-label>
+      <input matInput type="date" [ngModel]="hasta()" (ngModelChange)="hasta.set($event ?? '')" />
+    </mat-form-field>
+    @if (filtrando()) {
+      <button mat-button type="button" class="limpiar" (click)="limpiar()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar
+      </button>
+    }
+  </section>
+
   @if (cargando()) {
-    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando notificaciones"></mat-progress-bar>
   }
-
   @if (error()) {
-    <div class="mensaje mensaje-error">{{ error() }}</div>
+    <div class="mensaje mensaje--error" role="alert"><mat-icon>error_outline</mat-icon>{{ error() }}</div>
   }
 
-  <mat-card class="tarjeta">
-    <mat-card-header>
-      <mat-card-title>Cambios de estado</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
+  <section class="rejilla-2">
+    <div class="tarjeta bloque">
+      <h2 class="tarjeta-titulo">
+        Cambios de estado
+        <span class="etiqueta etiqueta--CREADA">{{ avisosVisibles().length }}</span>
+      </h2>
       @if (hayAvisos()) {
         <div class="contenedor-tabla">
-          <table mat-table [dataSource]="avisos()">
+          <table mat-table [dataSource]="avisosVisibles()">
             <ng-container matColumnDef="ordenId">
               <th mat-header-cell *matHeaderCellDef>Orden</th>
-              <td mat-cell *matCellDef="let a">#{{ a.ordenId }}</td>
+              <td mat-cell *matCellDef="let a"><b>#{{ a.ordenId }}</b></td>
             </ng-container>
             <ng-container matColumnDef="tipoEvento">
               <th mat-header-cell *matHeaderCellDef>Evento</th>
               <td mat-cell *matCellDef="let a">
-                <span class="etiqueta">{{ a.tipoEvento }}</span>
+                <span class="etiqueta etiqueta--{{ a.tipoEvento }}">{{ nombreTipo[a.tipoEvento] ?? a.tipoEvento }}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="mensaje">
@@ -45,29 +95,30 @@
             </ng-container>
             <ng-container matColumnDef="fechaAviso">
               <th mat-header-cell *matHeaderCellDef>Fecha</th>
-              <td mat-cell *matCellDef="let a">{{ a.fechaAviso }}</td>
+              <td mat-cell *matCellDef="let a" class="texto-suave">{{ a.fechaAviso | date: 'dd-MM HH:mm' }}</td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="columnasAvisos"></tr>
             <tr mat-row *matRowDef="let row; columns: columnasAvisos"></tr>
           </table>
         </div>
       } @else if (!cargando()) {
-        <p class="mensaje">Todavia no hay avisos de cambio de estado.</p>
+        <div class="vacio"><mat-icon>notifications_none</mat-icon>
+          <span>{{ filtrando() ? 'Ningún aviso coincide con el filtro.' : 'Todavía no hay avisos de cambio de estado.' }}</span>
+        </div>
       }
-    </mat-card-content>
-  </mat-card>
+    </div>
 
-  <mat-card class="tarjeta">
-    <mat-card-header>
-      <mat-card-title>Stock bajo minimo</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
+    <div class="tarjeta bloque">
+      <h2 class="tarjeta-titulo">
+        Stock bajo mínimo
+        <span class="etiqueta etiqueta--peligro">{{ stockVisibles().length }}</span>
+      </h2>
       @if (hayStock()) {
         <div class="contenedor-tabla">
-          <table mat-table [dataSource]="avisosStock()">
+          <table mat-table [dataSource]="stockVisibles()">
             <ng-container matColumnDef="sku">
               <th mat-header-cell *matHeaderCellDef>SKU</th>
-              <td mat-cell *matCellDef="let a">{{ a.sku }}</td>
+              <td mat-cell *matCellDef="let a"><b>{{ a.sku }}</b></td>
             </ng-container>
             <ng-container matColumnDef="mensaje">
               <th mat-header-cell *matHeaderCellDef>Aviso</th>
@@ -75,15 +126,17 @@
             </ng-container>
             <ng-container matColumnDef="fechaAviso">
               <th mat-header-cell *matHeaderCellDef>Fecha</th>
-              <td mat-cell *matCellDef="let a">{{ a.fechaAviso }}</td>
+              <td mat-cell *matCellDef="let a" class="texto-suave">{{ a.fechaAviso | date: 'dd-MM HH:mm' }}</td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="columnasStock"></tr>
             <tr mat-row *matRowDef="let row; columns: columnasStock"></tr>
           </table>
         </div>
       } @else if (!cargando()) {
-        <p class="mensaje">Todavia no hay alertas de stock.</p>
+        <div class="vacio"><mat-icon>inventory</mat-icon>
+          <span>{{ filtrando() ? 'Ninguna alerta coincide con el filtro.' : 'Todavía no hay alertas de stock.' }}</span>
+        </div>
       }
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </section>
 </section>

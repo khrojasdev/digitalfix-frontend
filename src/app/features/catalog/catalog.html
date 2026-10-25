@@ -1,79 +1,115 @@
-<mat-card class="tarjeta-catalogo">
-  <mat-card-header>
-    <mat-card-title>Catálogo de servicios</mat-card-title>
-    <mat-card-subtitle>Servicios de tu empresa</mat-card-subtitle>
-  </mat-card-header>
-
-  <mat-card-content>
-    <div class="barra-acciones">
-      <mat-slide-toggle
-        [checked]="soloActivos()"
-        (change)="alternarActivos($event.checked)">
-        Solo activos
-      </mat-slide-toggle>
-
-      @if (soloActivos()) {
-        <span class="pista">Apaga el interruptor para ver y reactivar los dados de baja.</span>
-      }
-
-      <span class="separador"></span>
-
-      <button mat-flat-button type="button" (click)="nuevo()">
-        <mat-icon>add</mat-icon>
-        Nuevo servicio
-      </button>
-
-      <a mat-stroked-button routerLink="/catalog/repuestos">
-        <mat-icon>inventory_2</mat-icon>
-        Repuestos
-      </a>
-
+<section class="pagina">
+  <header class="encabezado-pagina">
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>design_services</mat-icon></span>
+      <div>
+        <h1>Catálogo de servicios</h1>
+        <p class="subtitulo">Servicios de tu empresa: lo que se puede solicitar en una orden.</p>
+      </div>
+    </div>
+    <div class="acciones-pagina">
       <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
         <mat-icon>refresh</mat-icon>
         Actualizar
       </button>
+      <a mat-stroked-button routerLink="/catalog/repuestos">
+        <mat-icon>inventory_2</mat-icon>
+        Repuestos
+      </a>
+      <button mat-flat-button type="button" (click)="nuevo()">
+        <mat-icon>add</mat-icon>
+        Nuevo servicio
+      </button>
     </div>
+  </header>
 
-    @if (formularioAbierto()) {
+  @if (formularioAbierto()) {
+    <div class="tarjeta formulario">
       <app-servicio-form
         [servicio]="enEdicion()"
         (guardado)="alGuardar($event)"
         (cancelado)="cerrarFormulario()">
       </app-servicio-form>
-    }
+    </div>
+  }
 
-    @if (aviso(); as texto) {
-      <p class="aviso" role="status">{{ texto }}</p>
-    }
+  <section class="filtros" aria-label="Filtros del catálogo">
+    <mat-form-field appearance="outline" class="filtro-busqueda" subscriptSizing="dynamic">
+      <mat-label>Buscar servicio</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="filtro().texto" (ngModelChange)="actualizarFiltro({ texto: $event })"
+             placeholder="Código, nombre o descripción" />
+    </mat-form-field>
 
-    @if (cargando()) {
-      <mat-progress-bar mode="indeterminate" aria-label="Cargando el catálogo"></mat-progress-bar>
-    }
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Tarifa mínima</mat-label>
+      <span matTextPrefix>$&nbsp;</span>
+      <input matInput type="number" min="0" [ngModel]="filtro().tarifaMin" (ngModelChange)="actualizarFiltro({ tarifaMin: $event })" />
+    </mat-form-field>
 
-    @if (error(); as mensaje) {
-      <p class="error" role="alert">{{ mensaje }}</p>
-    }
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Tarifa máxima</mat-label>
+      <span matTextPrefix>$&nbsp;</span>
+      <input matInput type="number" min="0" [ngModel]="filtro().tarifaMax" (ngModelChange)="actualizarFiltro({ tarifaMax: $event })" />
+    </mat-form-field>
 
+    <mat-slide-toggle
+      class="limpiar"
+      [checked]="soloActivos()"
+      (change)="alternarActivos($event.checked)">
+      Solo activos
+    </mat-slide-toggle>
+
+    @if (filtrando()) {
+      <button mat-button type="button" class="limpiar" (click)="limpiarFiltros()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar
+      </button>
+    }
+  </section>
+
+  @if (soloActivos()) {
+    <p class="resumen-filtro">Mostrando solo servicios activos. Apaga «Solo activos» para ver y reactivar los dados de baja.</p>
+  }
+  @if (filtrando()) {
+    <p class="resumen-filtro">{{ visibles().length }} de {{ servicios().length }} servicios de esta página coinciden con la búsqueda.</p>
+  }
+
+  @if (aviso(); as texto) {
+    <div class="mensaje mensaje--ok" role="status"><mat-icon>check_circle</mat-icon>{{ texto }}</div>
+  }
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando el catálogo"></mat-progress-bar>
+  }
+
+  @if (error(); as mensaje) {
+    <div class="mensaje mensaje--error" role="alert"><mat-icon>error_outline</mat-icon>{{ mensaje }}</div>
+  }
+
+  <div class="tarjeta tabla-tarjeta">
     @if (!cargando() && !error() && servicios().length === 0) {
-      <p class="vacio">Tu empresa todavía no tiene servicios en el catálogo.</p>
+      <div class="vacio"><mat-icon>design_services</mat-icon><span>Tu empresa todavía no tiene servicios en el catálogo.</span></div>
     }
-
+    @if (servicios().length > 0 && visibles().length === 0) {
+      <div class="vacio"><mat-icon>filter_alt</mat-icon><span>Ningún servicio coincide con la búsqueda.</span></div>
+    }
     @if (servicios().length > 0) {
       <div class="contenedor-tabla">
-        <table mat-table [dataSource]="servicios()" class="tabla-servicios">
+        <table mat-table [dataSource]="visibles()" class="tabla-servicios">
           <ng-container matColumnDef="codigo">
             <th mat-header-cell *matHeaderCellDef>Código</th>
-            <td mat-cell *matCellDef="let s">{{ s.codigo }}</td>
+            <td mat-cell *matCellDef="let s"><span class="codigo">{{ s.codigo }}</span></td>
           </ng-container>
 
           <ng-container matColumnDef="nombre">
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let s">{{ s.nombre }}</td>
+            <td mat-cell *matCellDef="let s"><b>{{ s.nombre }}</b></td>
           </ng-container>
 
           <ng-container matColumnDef="descripcion">
             <th mat-header-cell *matHeaderCellDef>Descripción</th>
-            <td mat-cell *matCellDef="let s">{{ s.descripcion || '—' }}</td>
+            <td mat-cell *matCellDef="let s" class="texto-suave">{{ s.descripcion || '—' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="tarifa">
@@ -84,7 +120,7 @@
           <ng-container matColumnDef="estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
             <td mat-cell *matCellDef="let s">
-              <span class="etiqueta" [class.inactivo]="!s.activo">
+              <span class="etiqueta" [class.etiqueta--activo]="s.activo" [class.etiqueta--inactivo]="!s.activo">
                 {{ s.activo ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
@@ -138,10 +174,10 @@
         [length]="total()"
         [pageIndex]="pagina()"
         [pageSize]="tamano()"
-        [pageSizeOptions]="[10, 20, 50]"
+        [pageSizeOptions]="[10, 20, 50, 100]"
         (page)="cambiarPagina($event)"
         aria-label="Páginas del catálogo">
       </mat-paginator>
     }
-  </mat-card-content>
-</mat-card>
+  </div>
+</section>
