@@ -1,106 +1,98 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTableModule } from '@angular/material/table';
-import { forkJoin } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { catchError, firstValueFrom, forkJoin, of } from 'rxjs';
 
-import { Indicadores, ReportesService, ServicioRanking } from './reportes.service';
+import { AuthContextService } from '../../core/auth/auth-context.service';
+import { descargarCsv, fechaParaArchivo } from '../../core/util/exportar-csv';
+import { CatalogoService } from '../catalog/catalogo.service';
+import { Servicio } from '../catalog/catalogo.models';
+import { ESTADOS, NOMBRE_ESTADO } from '../workorders/ordenes.service';
+import { descargarReportePdf } from './reporte-pdf';
+import { Indicadores, PERIODOS, Periodo, ReportesService, ServicioRanking, formatoDuracion } from './reportes.service';
+
+const COLOR_ESTADO: Record<string, string> = {
+  CREADA: 'var(--df-info)',
+  ASIGNADA: 'var(--df-violeta)',
+  INICIADA: 'var(--df-aviso)',
+  CERRADA: 'var(--df-exito)',
+  CANCELADA: 'var(--df-peligro)',
+};
 
 /**
- * Vista de reportes: indicadores operacionales y ranking de servicios mas
- * solicitados, desde ms-digitalfix-report a traves del BFF.
+ * Reportes de operacion: indicadores y ranking de servicios del periodo
+ * elegido, desde ms-digitalfix-report a traves del BFF, y descarga del
+ * reporte en PDF o CSV.
  */
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DecimalPipe, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule],
-  template: `
-    <section class="pagina">
-      <header class="encabezado-pagina">
-        <div>
-          <h1>Reportes</h1>
-          <p class="subtitulo">Indicadores de las últimas 24 horas.</p>
-        </div>
-        <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
-          <mat-icon>refresh</mat-icon>
-          Actualizar
-        </button>
-      </header>
-
-      @if (cargando()) {
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      }
-      @if (error()) {
-        <div class="mensaje mensaje-error">{{ error() }}</div>
-      }
-
-      @if (indicadores(); as ind) {
-        <div class="tarjetas-indicadores">
-          <mat-card class="tarjeta">
-            <mat-card-content>
-              <span class="indicador-valor">{{ ind.ordenesTotales }}</span>
-              <span class="indicador-nota">órdenes totales</span>
-            </mat-card-content>
-          </mat-card>
-          <mat-card class="tarjeta">
-            <mat-card-content>
-              <span class="indicador-valor">
-                {{ ind.tiempoMedioResolucionMinutos !== null ? (ind.tiempoMedioResolucionMinutos | number: '1.0-0') : '—' }}
-              </span>
-              <span class="indicador-nota">min. promedio de resolución</span>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      }
-
-      <mat-card class="tarjeta">
-        <mat-card-header><mat-card-title>Servicios más solicitados</mat-card-title></mat-card-header>
-        <mat-card-content>
-          @if (hayRanking()) {
-            <div class="contenedor-tabla">
-              <table mat-table [dataSource]="ranking()">
-                <ng-container matColumnDef="servicioId">
-                  <th mat-header-cell *matHeaderCellDef>Servicio</th>
-                  <td mat-cell *matCellDef="let r">{{ r.servicioId }}</td>
-                </ng-container>
-                <ng-container matColumnDef="cantidadSolicitudes">
-                  <th mat-header-cell *matHeaderCellDef>Solicitudes</th>
-                  <td mat-cell *matCellDef="let r">{{ r.cantidadSolicitudes }}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="columnas"></tr>
-                <tr mat-row *matRowDef="let row; columns: columnas"></tr>
-              </table>
-            </div>
-          } @else if (!cargando()) {
-            <p class="mensaje">Sin datos de ranking en el período.</p>
-          }
-        </mat-card-content>
-      </mat-card>
-    </section>
-  `,
-  styles: [
-    `.tarjetas-indicadores { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
-     .tarjetas-indicadores .tarjeta { flex: 1 1 180px; }
-     .indicador-valor { display: block; font-size: 2rem; font-weight: 600; }
-     .indicador-nota { color: var(--df-suave, #5f6368); }
-     table { width: 100%; }`,
-  ],
+  imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressBarModule],
+  templateUrl: './reports.html',
+  styleUrl: './reports.scss',
 })
 export class Reports implements OnInit {
-  private service = inject(ReportesService);
+  private readonly service = inject(ReportesService);
+  private readonly catalogo = inject(CatalogoService);
+  private readonly authContext = inject(AuthContextService);
+  private readonly aviso = inject(MatSnackBar);
 
+  protected readonly periodos = PERIODOS;
+  protected readonly duracion = formatoDuracion;
+
+  protected readonly periodo = signal<Periodo>('24h');
   protected readonly cargando = signal(false);
+  protected readonly generando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly indicadores = signal<Indicadores | null>(null);
   protected readonly ranking = signal<ServicioRanking[]>([]);
-  protected readonly hayRanking = computed(() => this.ranking().length > 0);
-  protected readonly columnas = ['servicioId', 'cantidadSolicitudes'];
+  private readonly servicios = signal<Map<number, Servicio>>(new Map());
+
+  protected readonly nombrePeriodo = computed(
+    () => PERIODOS.find((p) => p.codigo === this.periodo())?.nombre ?? this.periodo(),
+  );
+
+  private readonly conteo = computed(() => this.indicadores()?.conteoPorEstado ?? {});
+  protected readonly total = computed(() => this.indicadores()?.ordenesTotales ?? 0);
+  protected readonly cerradas = computed(() => this.conteo()['CERRADA'] ?? 0);
+  protected readonly canceladas = computed(() => this.conteo()['CANCELADA'] ?? 0);
+  protected readonly abiertas = computed(() => Math.max(this.total() - this.cerradas() - this.canceladas(), 0));
+  protected readonly tasaCierre = computed(() =>
+    this.total() ? Math.round((this.cerradas() / this.total()) * 100) : 0,
+  );
+
+  /** Barras por estado, en el orden del flujo y con su color. */
+  protected readonly barrasEstado = computed(() => {
+    const conteo = this.conteo();
+    const maximo = Math.max(1, ...ESTADOS.map((e) => conteo[e] ?? 0));
+    return ESTADOS.map((e) => ({
+      nombre: NOMBRE_ESTADO[e],
+      valor: conteo[e] ?? 0,
+      ancho: ((conteo[e] ?? 0) / maximo) * 100,
+      color: COLOR_ESTADO[e],
+    }));
+  });
+
+  protected readonly barrasServicio = computed(() => {
+    const lista = this.ranking();
+    const maximo = Math.max(1, ...lista.map((r) => r.cantidadSolicitudes));
+    return lista.map((r) => ({
+      nombre: this.nombreServicio(r.servicioId),
+      valor: r.cantidadSolicitudes,
+      ancho: (r.cantidadSolicitudes / maximo) * 100,
+    }));
+  });
 
   ngOnInit(): void {
+    this.cargar();
+  }
+
+  protected elegirPeriodo(periodo: Periodo): void {
+    this.periodo.set(periodo);
     this.cargar();
   }
 
@@ -108,19 +100,81 @@ export class Reports implements OnInit {
     this.cargando.set(true);
     this.error.set(null);
     forkJoin({
-      indicadores: this.service.indicadores(),
-      ranking: this.service.topServicios(),
+      indicadores: this.service.indicadores(this.periodo()),
+      ranking: this.service.topServicios(this.periodo()),
+      // Solo para mostrar nombres: si el catalogo falla, se muestra el id.
+      servicios: this.catalogo.listarServicios(0, 500, false).pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ indicadores, ranking }) => {
+      next: ({ indicadores, ranking, servicios }) => {
         this.indicadores.set(indicadores);
         this.ranking.set(ranking ?? []);
+        if (servicios) {
+          this.servicios.set(new Map(servicios.content.map((s) => [s.id, s])));
+        }
         this.cargando.set(false);
       },
       error: (e: unknown) => {
         this.error.set(mensaje(e));
+        this.indicadores.set(null);
+        this.ranking.set([]);
         this.cargando.set(false);
       },
     });
+  }
+
+  protected nombreServicio(id: number): string {
+    return this.servicios().get(id)?.nombre ?? `Servicio #${id}`;
+  }
+
+  protected async descargarPdf(): Promise<void> {
+    const indicadores = this.indicadores();
+    if (!indicadores) return;
+    this.generando.set(true);
+    try {
+      const perfil = await firstValueFrom(this.authContext.profile$);
+      await descargarReportePdf(
+        {
+          empresa: perfil?.companyName || 'Mi empresa',
+          autor: perfil?.name || perfil?.email || 'usuario',
+          periodo: this.nombrePeriodo(),
+          generado: new Date(),
+          ordenesTotales: indicadores.ordenesTotales,
+          tiempoMedioMinutos: indicadores.tiempoMedioResolucionMinutos,
+          conteoPorEstado: indicadores.conteoPorEstado ?? {},
+          ranking: this.ranking().map((r) => ({
+            codigo: this.servicios().get(r.servicioId)?.codigo ?? null,
+            nombre: this.nombreServicio(r.servicioId),
+            solicitudes: r.cantidadSolicitudes,
+          })),
+        },
+        `reporte-digitalfix-${this.periodo()}-${fechaParaArchivo()}.pdf`,
+      );
+    } catch {
+      this.aviso.open('No se pudo generar el PDF.', 'Cerrar', { duration: 4000 });
+    } finally {
+      this.generando.set(false);
+    }
+  }
+
+  protected descargarCsv(): void {
+    const ind = this.indicadores();
+    if (!ind) return;
+    const filas: Array<Array<string | number | null>> = [
+      ['Período', this.nombrePeriodo(), ''],
+      ['Órdenes en el período', ind.ordenesTotales, ''],
+      ['Tiempo medio de resolución (min)', ind.tiempoMedioResolucionMinutos ?? '', ''],
+      ['', '', ''],
+      ['Estado', 'Órdenes', ''],
+      ...ESTADOS.map((e) => [NOMBRE_ESTADO[e], ind.conteoPorEstado?.[e] ?? 0, '']),
+      ['', '', ''],
+      ['Servicio', 'Código', 'Solicitudes'],
+      ...this.ranking().map((r) => [
+        this.nombreServicio(r.servicioId),
+        this.servicios().get(r.servicioId)?.codigo ?? '',
+        r.cantidadSolicitudes,
+      ]),
+    ];
+    descargarCsv(`reporte-digitalfix-${this.periodo()}-${fechaParaArchivo()}.csv`, ['Reporte de operaciones', '', ''], filas);
   }
 }
 
