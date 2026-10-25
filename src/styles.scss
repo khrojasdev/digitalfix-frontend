@@ -309,7 +309,7 @@ mat-card.mat-mdc-card {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px 2px;
+  padding: 16px;
   margin-bottom: 16px;
   background: var(--df-superficie);
   border: 1px solid var(--df-borde);
@@ -327,7 +327,7 @@ mat-card.mat-mdc-card {
 }
 
 .filtros .limpiar {
-  margin-bottom: 18px;
+  margin-top: 4px;
 }
 
 .resumen-filtro {

@@ -20,15 +20,32 @@ export interface PaginaEventos {
   totalElements: number;
 }
 
+/** Filtros que acepta ms-digitalfix-audit (todos opcionales y combinables). */
+export interface FiltroAuditoria {
+  tipoEvento: string;
+  autorId: string;
+  /** AAAA-MM-DD, desde el inicio del dia. */
+  desde: string;
+  /** AAAA-MM-DD, hasta el final del dia. */
+  hasta: string;
+}
+
+export const FILTRO_AUDITORIA_VACIO: FiltroAuditoria = { tipoEvento: '', autorId: '', desde: '', hasta: '' };
+
 /**
  * Entrada del frontend a la auditoria, a traves del BFF (/api/audit).
+ * El filtrado y la paginacion los hace el microservicio.
  */
 @Injectable({ providedIn: 'root' })
 export class AuditoriaService {
   private api = inject(ApiService);
 
-  eventos(pagina = 0, tamano = 20): Observable<PaginaEventos> {
-    const params = new HttpParams().set('page', pagina).set('size', tamano);
+  eventos(pagina = 0, tamano = 20, filtro: FiltroAuditoria = FILTRO_AUDITORIA_VACIO): Observable<PaginaEventos> {
+    let params = new HttpParams().set('page', pagina).set('size', tamano).set('sort', 'fecha,desc');
+    if (filtro.tipoEvento) params = params.set('tipoEvento', filtro.tipoEvento);
+    if (filtro.autorId.trim()) params = params.set('autorId', filtro.autorId.trim());
+    if (filtro.desde) params = params.set('desde', `${filtro.desde}T00:00:00`);
+    if (filtro.hasta) params = params.set('hasta', `${filtro.hasta}T23:59:59`);
     return this.api.get<PaginaEventos>('api/audit/events', params);
   }
 }
