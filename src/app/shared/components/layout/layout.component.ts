@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { MsalService } from '@azure/msal-angular';
 import { SessionService } from '../../../core/auth/session.service';
 import { AuthContextService } from '../../../core/auth/auth-context.service';
+import { TemaService } from '../../../core/ui/tema.service';
 
 @Component({
   selector: 'app-layout',
@@ -30,6 +31,7 @@ export class LayoutComponent {
 
   public sessionService = inject(SessionService);
   public authContext = inject(AuthContextService);
+  public tema = inject(TemaService);
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map((result) => result.matches),

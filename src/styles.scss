@@ -4,56 +4,73 @@
    Tema
    =============================================================================
 
-   El andamio de Angular dejaba la paleta `rose` como primaria y `red` como
-   terciaria, mientras el CSS propio definia --df-primary en azul. Resultado:
-   cada componente de Material salia rosa y cada regla propia azul, y los
-   botones sobre la barra superior quedaban casi ilegibles porque su color
-   venia de una paleta y el fondo de la otra.
-
-   Ahora hay una sola fuente: el tema. Los tokens --df-* se derivan de los
-   --mat-sys-* que genera mat.theme, de modo que no puedan volver a
+   Una sola fuente de color: mat.theme. Los tokens --df-* se derivan de los
+   --mat-sys-* que genera, para que el CSS propio y Material no vuelvan a
    desincronizarse.
+
+   Modo claro y oscuro. mat.theme genera sus colores con light-dark(), asi que
+   basta con cambiar color-scheme en <html> (lo hace TemaService con la clase
+   .tema-oscuro). Los tokens propios usan light-dark() por el mismo motivo.
    ============================================================================= */
 
 html {
   height: 100%;
+  color-scheme: light;
 
   @include mat.theme((
     color: (
       primary: mat.$azure-palette,
       tertiary: mat.$orange-palette,
     ),
-    typography: Roboto,
+    typography: (
+      plain-family: ('Inter', Roboto, 'Helvetica Neue', Arial, sans-serif),
+      brand-family: ('Inter', Roboto, 'Helvetica Neue', Arial, sans-serif),
+    ),
     density: 0,
   ));
+}
+
+html.tema-oscuro {
+  color-scheme: dark;
+  --df-lateral-fondo: linear-gradient(180deg, #0a1424 0%, #0f1f38 100%);
 }
 
 :root {
   /* ------------------------------------------------------- color de marca */
   --df-primary: var(--mat-sys-primary);
   --df-on-primary: var(--mat-sys-on-primary);
+  --df-acento: light-dark(#ea7a1f, #f59e4a);
   --df-superficie: var(--mat-sys-surface);
   --df-superficie-alta: var(--mat-sys-surface-container-low);
+  --df-fondo: light-dark(#f4f6fb, #0d1320);
   --df-borde: var(--mat-sys-outline-variant);
   --df-texto: var(--mat-sys-on-surface);
   --df-texto-suave: var(--mat-sys-on-surface-variant);
 
-  /* Estados. Se usan tal cual en tarjetas, etiquetas y filas destacadas, para
-     que "atencion" signifique lo mismo en todas las pantallas. */
-  --df-exito: #15803d;
-  --df-exito-suave: #e8f5ec;
-  --df-aviso: #b45309;
-  --df-aviso-suave: #fdf4e6;
+  /* Menu lateral: azul profundo de marca en ambos modos. */
+  --df-lateral-fondo: linear-gradient(180deg, #0c2340 0%, #133a66 100%);
+  --df-lateral-texto: #dbe6f5;
+  --df-lateral-suave: #8fa6c4;
+
+  /* Estados. Un color por significado, el mismo en todas las pantallas. */
+  --df-exito: light-dark(#15803d, #4ade80);
+  --df-exito-suave: light-dark(#e8f5ec, #12301f);
+  --df-aviso: light-dark(#b45309, #fbbf24);
+  --df-aviso-suave: light-dark(#fdf4e6, #3a2a0c);
+  --df-info: light-dark(#1d4ed8, #93c5fd);
+  --df-info-suave: light-dark(#e8efff, #142545);
+  --df-violeta: light-dark(#6d28d9, #c4b5fd);
+  --df-violeta-suave: light-dark(#f1ebff, #2a1d4a);
   --df-peligro: var(--mat-sys-error);
   --df-peligro-suave: var(--mat-sys-error-container);
 
   /* ------------------------------------------------------------- medidas */
-  --df-radio: 12px;
-  --df-radio-chico: 8px;
-  --df-sombra: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --df-radio: 14px;
+  --df-radio-chico: 9px;
+  --df-sombra: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.08);
   --df-sombra-alta: 0 4px 6px -2px rgba(16, 24, 40, 0.05),
-                    0 12px 16px -4px rgba(16, 24, 40, 0.08);
-  --df-ancho-contenido: 1180px;
+                    0 12px 24px -6px rgba(16, 24, 40, 0.12);
+  --df-ancho-contenido: 1240px;
 }
 
 html,
@@ -62,11 +79,10 @@ body {
   padding: 0;
   min-height: 100%;
   box-sizing: border-box;
-  color-scheme: light;
-  background-color: var(--mat-sys-surface-container-lowest);
+  background-color: var(--df-fondo);
   color: var(--df-texto);
   font: var(--mat-sys-body-medium);
-  font-family: Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -76,8 +92,7 @@ body {
   box-sizing: inherit;
 }
 
-/* El foco tiene que verse siempre: es la unica pista que tiene quien navega
-   con teclado. Se dibuja fuera del elemento para no alterar su tamano. */
+/* El foco tiene que verse siempre: es la unica pista de quien usa teclado. */
 *:focus-visible {
   outline: 2px solid var(--df-primary);
   outline-offset: 2px;
@@ -91,30 +106,63 @@ body {
 .pagina {
   max-width: var(--df-ancho-contenido);
   margin: 0 auto;
+  animation: df-aparecer 0.25s ease-out;
 }
 
-/* Encabezado de pantalla: titulo a la izquierda, acciones a la derecha, y en
-   movil uno debajo del otro sin que nada se salga. */
+@keyframes df-aparecer {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina { animation: none; }
+}
+
+/* Encabezado de pantalla: icono + titulo a la izquierda, acciones a la derecha. */
 .encabezado-pagina {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.encabezado-pagina .titulo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.icono-pagina {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--df-primary) 12%, transparent);
+  color: var(--df-primary);
+  flex: none;
 }
 
 .encabezado-pagina h1 {
   margin: 0;
   font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
 }
 
 .encabezado-pagina .subtitulo {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   color: var(--df-texto-suave);
   font-size: 14px;
+}
+
+.acciones-pagina {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .tarjeta {
@@ -124,15 +172,104 @@ body {
   box-shadow: var(--df-sombra);
 }
 
-/* Las tarjetas de Material se alinean con lo anterior en vez de traer su
-   propia sombra y su propio radio. */
 mat-card.mat-mdc-card {
   border: 1px solid var(--df-borde);
   border-radius: var(--df-radio);
   box-shadow: var(--df-sombra);
+  background: var(--df-superficie);
 }
 
-/* Etiquetas de estado. Un color por significado, y el mismo en todas partes. */
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------- tarjetas KPI */
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.kpi {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px;
+  overflow: hidden;
+  background: var(--df-superficie);
+  border: 1px solid var(--df-borde);
+  border-radius: var(--df-radio);
+  box-shadow: var(--df-sombra);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--df-sombra-alta);
+}
+
+.kpi::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--kpi-color, var(--df-primary));
+}
+
+.kpi-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: var(--kpi-color, var(--df-primary));
+  background: color-mix(in srgb, var(--kpi-color, var(--df-primary)) 13%, transparent);
+}
+
+.kpi-datos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kpi-etiqueta {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--df-texto-suave);
+}
+
+.kpi-valor {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+
+.kpi-nota {
+  font-size: 12px;
+  color: var(--df-texto-suave);
+}
+
+.kpi--exito { --kpi-color: var(--df-exito); }
+.kpi--aviso { --kpi-color: var(--df-aviso); }
+.kpi--peligro { --kpi-color: var(--df-peligro); }
+.kpi--info { --kpi-color: var(--df-info); }
+.kpi--violeta { --kpi-color: var(--df-violeta); }
+.kpi--acento { --kpi-color: var(--df-acento); }
+
+/* ------------------------------------------------------------- etiquetas */
+
 .etiqueta {
   display: inline-flex;
   align-items: center;
@@ -140,32 +277,116 @@ mat-card.mat-mdc-card {
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.5;
   white-space: nowrap;
-}
-
-.etiqueta--activo {
-  background: var(--df-exito-suave);
-  color: var(--df-exito);
-}
-
-.etiqueta--inactivo {
   background: color-mix(in srgb, var(--df-texto) 8%, transparent);
   color: var(--df-texto-suave);
 }
 
-.etiqueta--aviso {
-  background: var(--df-aviso-suave);
-  color: var(--df-aviso);
+.etiqueta::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.etiqueta--peligro {
-  background: var(--df-peligro-suave);
-  color: var(--mat-sys-on-error-container);
+.etiqueta--activo,
+.etiqueta--CERRADA { background: var(--df-exito-suave); color: var(--df-exito); }
+.etiqueta--inactivo { background: color-mix(in srgb, var(--df-texto) 8%, transparent); color: var(--df-texto-suave); }
+.etiqueta--aviso,
+.etiqueta--INICIADA { background: var(--df-aviso-suave); color: var(--df-aviso); }
+.etiqueta--peligro,
+.etiqueta--CANCELADA { background: var(--df-peligro-suave); color: var(--mat-sys-on-error-container); }
+.etiqueta--CREADA { background: var(--df-info-suave); color: var(--df-info); }
+.etiqueta--ASIGNADA { background: var(--df-violeta-suave); color: var(--df-violeta); }
+
+/* ----------------------------------------------------------- filtros */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 2px;
+  margin-bottom: 16px;
+  background: var(--df-superficie);
+  border: 1px solid var(--df-borde);
+  border-radius: var(--df-radio);
+  box-shadow: var(--df-sombra);
 }
 
-/* Barra de acciones de una pantalla. */
+.filtros mat-form-field {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.filtros .filtro-busqueda {
+  flex: 2 1 260px;
+}
+
+.filtros .limpiar {
+  margin-bottom: 18px;
+}
+
+.resumen-filtro {
+  margin: -6px 0 12px;
+  font-size: 13px;
+  color: var(--df-texto-suave);
+}
+
+/* ------------------------------------------------------ barras (graficos) */
+
+.barras {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barra-fila {
+  display: grid;
+  grid-template-columns: minmax(90px, 160px) 1fr 48px;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.barra-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--df-texto-suave);
+}
+
+.barra-pista {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--df-texto) 7%, transparent);
+  overflow: hidden;
+}
+
+.barra-relleno {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--barra-color, var(--df-primary));
+  transition: width 0.4s ease;
+}
+
+.barra-valor {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------- disposicion */
+
+.rejilla-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 .barra-acciones {
   display: flex;
   align-items: center;
@@ -178,9 +399,7 @@ mat-card.mat-mdc-card {
   flex: 1 1 auto;
 }
 
-/* Tablas: cabecera tenue, filas con separador fino y desplazamiento propio.
-   Una tabla ancha se desplaza dentro de su contenedor y no obliga a mover la
-   pagina entera en pantalla estrecha. */
+/* Tablas: cabecera tenue, filas con separador fino y desplazamiento propio. */
 .contenedor-tabla {
   overflow-x: auto;
   border-radius: var(--df-radio-chico);
@@ -198,17 +417,31 @@ table.mat-mdc-table .mat-mdc-header-row {
 
 table.mat-mdc-table .mat-mdc-header-cell {
   font-weight: 600;
-  font-size: 12.5px;
-  letter-spacing: 0.2px;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   color: var(--df-texto-suave);
 }
 
+table.mat-mdc-table .mat-mdc-row {
+  transition: background 0.12s ease;
+}
+
 table.mat-mdc-table .mat-mdc-row:hover {
-  background: color-mix(in srgb, var(--df-primary) 4%, transparent);
+  background: color-mix(in srgb, var(--df-primary) 5%, transparent);
 }
 
 .derecha {
   text-align: right;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+}
+
+.texto-suave {
+  color: var(--df-texto-suave);
 }
 
 /* Mensajes de estado de una pantalla. */
@@ -222,7 +455,8 @@ table.mat-mdc-table .mat-mdc-row:hover {
   font-size: 14px;
 }
 
-.mensaje--error {
+.mensaje--error,
+.mensaje-error {
   background: var(--df-peligro-suave);
   color: var(--mat-sys-on-error-container);
 }
@@ -233,18 +467,29 @@ table.mat-mdc-table .mat-mdc-row:hover {
 }
 
 .vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
   color: var(--df-texto-suave);
-  margin: 24px 0;
   text-align: center;
 }
 
-/* Botones: alto y radio consistentes, y el de accion principal con peso. */
+.vacio mat-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+  opacity: 0.45;
+}
+
+/* Botones: alto y radio consistentes. */
 .mat-mdc-unelevated-button,
 .mat-mdc-raised-button,
 .mat-mdc-outlined-button,
 .mat-mdc-button {
   border-radius: var(--df-radio-chico);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1px;
 }
 
@@ -252,12 +497,34 @@ table.mat-mdc-table .mat-mdc-row:hover {
   border-color: var(--df-borde);
 }
 
+/* Dialogos con el mismo radio que las tarjetas. */
+.mat-mdc-dialog-surface {
+  border-radius: var(--df-radio) !important;
+}
+
 .content-padding {
-  padding: 24px;
+  padding: 28px;
 }
 
 @media (max-width: 599px) {
   .content-padding {
     padding: 16px;
+  }
+
+  .kpi-valor {
+    font-size: 24px;
+  }
+}
+
+/* Impresion: sin menu ni barra, solo el contenido. */
+@media print {
+  .sidenav,
+  .barra,
+  .no-imprimir {
+    display: none !important;
+  }
+
+  .content-padding {
+    padding: 0;
   }
 }

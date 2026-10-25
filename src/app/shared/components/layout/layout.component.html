@@ -66,6 +66,11 @@
         </a>
       }
     </nav>
+
+    <div class="pie-lateral">
+      <mat-icon>bolt</mat-icon>
+      <span>DigitalFix · Mantención eléctrica</span>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -99,6 +104,16 @@
           </span>
         </div>
       }
+
+      <button
+        mat-icon-button
+        type="button"
+        class="boton-tema"
+        [attr.aria-label]="tema.oscuro() ? 'Usar modo claro' : 'Usar modo oscuro'"
+        [attr.title]="tema.oscuro() ? 'Modo claro' : 'Modo oscuro'"
+        (click)="tema.alternar()">
+        <mat-icon>{{ tema.oscuro() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
 
       <!--
         El botón de salir vive FUERA del bloque del perfil: si /api/me no
