@@ -42,7 +42,7 @@ export class Audit implements OnInit {
   private readonly service = inject(AuditoriaService);
 
   protected readonly tipos = ESTADOS;
-  protected readonly nombreTipo: Record<string, string> = NOMBRE_ESTADO;
+  protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_ESTADO;
   protected readonly columnas = ['fecha', 'tipoEvento', 'ordenId', 'autorId', 'correlacionId'];
 
   protected readonly cargando = signal(false);

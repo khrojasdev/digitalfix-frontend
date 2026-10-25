@@ -1,25 +1,40 @@
-<div class="login-wrapper">
-  <mat-card class="login-card">
-    <mat-card-header style="display: flex; flex-direction: column; align-items: center;">
-      <mat-icon class="brand-icon">engineering</mat-icon>
-      <mat-card-title style="font-size: 24px; font-weight: bold;">DigitalFix</mat-card-title>
-      <mat-card-subtitle>Gestión de Operaciones</mat-card-subtitle>
-    </mat-card-header>
+<main class="login">
+  <section class="marca" aria-hidden="false">
+    <div class="marca-cabecera">
+      <span class="logo">KCD</span>
+      <span class="marca-nombre">DigitalFix</span>
+    </div>
 
-    <mat-card-content>
-      <p>Bienvenido al portal corporativo. Por favor, identifícate para acceder al sistema.</p>
-    </mat-card-content>
+    <div class="marca-centro">
+      <h1>Mantención eléctrica, bajo control.</h1>
+      <p>Órdenes de trabajo, catálogo de servicios, inventario y reportes de tu empresa en un solo lugar.</p>
+      <ul>
+        <li><mat-icon>assignment</mat-icon>Crea órdenes y sigue su avance hasta el cierre.</li>
+        <li><mat-icon>insights</mat-icon>Indicadores y reportes descargables en PDF.</li>
+        <li><mat-icon>verified_user</mat-icon>Acceso con tu cuenta corporativa de Microsoft.</li>
+      </ul>
+    </div>
 
-    <mat-card-actions style="display: flex; flex-direction: column; padding: 0 16px;">
-      <button mat-flat-button color="primary" class="login-button" (click)="iniciarSesion()">
+    <p class="marca-pie">Plataforma multiempresa de mantención eléctrica</p>
+  </section>
+
+  <section class="acceso">
+    <div class="tarjeta-acceso">
+      <span class="icono"><mat-icon>engineering</mat-icon></span>
+      <h2>Bienvenido</h2>
+      <p class="texto">Identifícate con tu cuenta para acceder a la gestión de operaciones.</p>
+
+      <button mat-flat-button type="button" class="boton" (click)="iniciarSesion()">
         <mat-icon>login</mat-icon>
-        Iniciar Sesión
+        Iniciar sesión
       </button>
 
-      <button mat-stroked-button color="primary" class="signup-button" (click)="crearCuenta()">
+      <button mat-stroked-button type="button" class="boton" (click)="crearCuenta()">
         <mat-icon>person_add</mat-icon>
-        Crear Cuenta
+        Crear cuenta
       </button>
-    </mat-card-actions>
-  </mat-card>
-</div>
+
+      <p class="nota">Serás redirigido a Microsoft Entra ID para iniciar sesión de forma segura.</p>
+    </div>
+  </section>
+</main>
