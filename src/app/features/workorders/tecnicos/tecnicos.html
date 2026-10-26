@@ -4,7 +4,7 @@
       <span class="icono-pagina"><mat-icon>engineering</mat-icon></span>
       <div>
         <h1>Técnicos</h1>
-        <p class="subtitulo">Personal de terreno que se asigna a las órdenes de trabajo.</p>
+        <p class="subtitulo">Personal de terreno. Cada uno entra con el rol Técnico y el mismo correo que registras aquí.</p>
       </div>
     </div>
     <div class="acciones-pagina">
@@ -67,6 +67,17 @@
           <ng-container matColumnDef="especialidad">
             <th mat-header-cell *matHeaderCellDef>Especialidad</th>
             <td mat-cell *matCellDef="let t" class="texto-suave">{{ t.especialidad || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="cuenta">
+            <th mat-header-cell *matHeaderCellDef>Cuenta</th>
+            <td mat-cell *matCellDef="let t">
+              @if (t.cuentaVinculada) {
+                <span class="etiqueta etiqueta--activo" matTooltip="Ya entró con su cuenta y ve sus órdenes en Mis órdenes">Vinculada</span>
+              } @else {
+                <span class="texto-suave" matTooltip="Se vincula sola cuando entre con el rol TECNICO y este mismo correo">Pendiente</span>
+              }
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="estado">

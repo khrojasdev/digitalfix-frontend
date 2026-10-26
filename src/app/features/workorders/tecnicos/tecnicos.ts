@@ -43,7 +43,7 @@ export class Tecnicos implements OnInit {
   private readonly dialogo = inject(MatDialog);
   private readonly aviso = inject(MatSnackBar);
 
-  protected readonly columnas = ['nombre', 'contacto', 'especialidad', 'estado', 'fechaCreacion', 'acciones'];
+  protected readonly columnas = ['nombre', 'contacto', 'especialidad', 'cuenta', 'estado', 'fechaCreacion', 'acciones'];
 
   protected readonly tecnicos = signal<Tecnico[]>([]);
   protected readonly cargando = signal(false);

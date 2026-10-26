@@ -1,0 +1,101 @@
+<section class="pagina">
+  <header class="encabezado-pagina">
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>handyman</mat-icon></span>
+      <div>
+        <h1>Mis órdenes</h1>
+        <p class="subtitulo">
+          @if (tecnico(); as t) {
+            {{ t.nombre }}{{ t.especialidad ? ' · ' + t.especialidad : '' }}. Marca cada paso cuando lo hagas en terreno.
+          } @else {
+            Las órdenes que tienes asignadas.
+          }
+        </p>
+      </div>
+    </div>
+    <div class="acciones-pagina">
+      <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  @if (!error()) {
+    <section class="kpis" aria-label="Resumen de mis órdenes">
+      <div class="kpi kpi--info">
+        <span class="kpi-icono"><mat-icon>pending_actions</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Pendientes</span>
+          <span class="kpi-valor">{{ pendientes().length }}</span>
+          <span class="kpi-nota">por atender o terminar</span>
+        </div>
+      </div>
+      <div class="kpi kpi--acento">
+        <span class="kpi-icono"><mat-icon>directions_car</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">En terreno</span>
+          <span class="kpi-valor">{{ enTerreno() }}</span>
+          <span class="kpi-nota">en camino o en ejecución</span>
+        </div>
+      </div>
+      <div class="kpi kpi--exito">
+        <span class="kpi-icono"><mat-icon>task_alt</mat-icon></span>
+        <div class="kpi-datos">
+          <span class="kpi-etiqueta">Cerradas</span>
+          <span class="kpi-valor">{{ cerradas() }}</span>
+          <span class="kpi-nota">trabajo terminado</span>
+        </div>
+      </div>
+    </section>
+
+    <mat-button-toggle-group class="vista" [value]="vista()" (change)="vista.set($event.value)" aria-label="Qué órdenes ver">
+      <mat-button-toggle value="pendientes">Pendientes</mat-button-toggle>
+      <mat-button-toggle value="todas">Todas</mat-button-toggle>
+    </mat-button-toggle-group>
+  }
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando tus órdenes"></mat-progress-bar>
+  }
+  @if (error()) {
+    <div class="mensaje mensaje--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ error() }}
+    </div>
+  }
+
+  @if (!error() && !cargando() && visibles().length === 0) {
+    <div class="tarjeta vacio">
+      <mat-icon>{{ vista() === 'pendientes' ? 'celebration' : 'assignment' }}</mat-icon>
+      <span>{{ vista() === 'pendientes' ? 'No tienes órdenes pendientes.' : 'Todavía no tienes órdenes asignadas.' }}</span>
+    </div>
+  }
+
+  <div class="lista">
+    @for (o of visibles(); track o.id) {
+      <article class="tarjeta orden">
+        <div class="orden-cabecera">
+          <span class="numero">#{{ o.id }}</span>
+          <span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span>
+        </div>
+        <h2 class="orden-servicio">{{ nombreServicio(o.servicioId) }}</h2>
+        @if (o.comentarios) {
+          <p class="orden-detalle"><mat-icon inline>place</mat-icon> {{ o.comentarios }}</p>
+        }
+        <p class="texto-suave orden-fecha">
+          Creada el {{ o.fechaCreacion | date: 'dd-MM-yyyy HH:mm' }}
+          @if (o.fechaActualizacion) {
+            · actualizada el {{ o.fechaActualizacion | date: 'dd-MM-yyyy HH:mm' }}
+          }
+        </p>
+        @if (pasoDelTecnico(o.estado); as paso) {
+          <button mat-flat-button type="button" class="orden-accion" (click)="avanzar(o)" [disabled]="cambiando() === o.id">
+            <mat-icon>{{ paso.icono }}</mat-icon>
+            {{ paso.accion }}
+          </button>
+        }
+      </article>
+    }
+  </div>
+</section>

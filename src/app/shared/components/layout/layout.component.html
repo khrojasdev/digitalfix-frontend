@@ -44,6 +44,13 @@
         </a>
       }
 
+      @if (esTecnico$ | async) {
+        <a class="item" routerLink="/mis-ordenes" routerLinkActive="activo">
+          <mat-icon>handyman</mat-icon>
+          <span>Mis órdenes</span>
+        </a>
+      }
+
       @if (puedeGestionarTecnicos$ | async) {
         <a class="item" routerLink="/workorders/tecnicos" routerLinkActive="activo">
           <mat-icon>engineering</mat-icon>
