@@ -53,6 +53,14 @@ export const routes: Routes = [
           import('./features/workorders/workorders').then((m) => m.Workorders),
       },
       {
+        // Tecnicos de terreno: los gestiona quien asigna las ordenes.
+        path: 'workorders/tecnicos',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR'] },
+        loadComponent: () =>
+          import('./features/workorders/tecnicos/tecnicos').then((m) => m.Tecnicos),
+      },
+      {
         path: 'reports',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'SUPERVISOR'] },

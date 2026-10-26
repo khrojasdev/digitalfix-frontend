@@ -54,6 +54,7 @@ export class LayoutComponent {
     'AUDITOR',
     'CLIENTE',
   ]);
+  readonly puedeGestionarTecnicos$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
   readonly puedeVerReportes$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
   readonly puedeAuditar$ = this.authContext.tieneAlguno$(['ADMIN', 'AUDITOR']);
   readonly puedeVerNotificaciones$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR']);
