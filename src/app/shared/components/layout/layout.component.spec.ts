@@ -104,6 +104,26 @@ describe('LayoutComponent', () => {
     expect(texto()).not.toContain('Panel');
   });
 
+  it('un TECNICO ve solo Mis órdenes', async () => {
+    responderPerfil({
+      oid: 'oid-4',
+      email: 'pedro@digitalfix.cl',
+      name: 'Pedro Soto',
+      companyId: '1',
+      companyName: 'ElectroRed',
+      roles: ['TECNICO'],
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(texto()).toContain('Mis órdenes');
+    expect(texto()).not.toContain('Catálogo');
+    expect(texto()).not.toContain('Repuestos');
+    expect(texto()).not.toContain('Órdenes de trabajo');
+    expect(texto()).not.toContain('Técnicos');
+  });
+
   it('si el perfil no llega, igual se puede cerrar sesion', async () => {
     responderPerfil(null);
     fixture.detectChanges();

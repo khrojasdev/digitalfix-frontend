@@ -16,6 +16,8 @@ export interface Tecnico {
   especialidad: string | null;
   activo: boolean;
   fechaCreacion: string;
+  /** Ya inicio sesion con el rol TECNICO y su cuenta quedo vinculada. */
+  cuentaVinculada?: boolean;
 }
 
 export interface DatosTecnico {

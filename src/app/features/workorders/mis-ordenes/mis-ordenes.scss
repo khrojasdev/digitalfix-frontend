@@ -1,0 +1,54 @@
+.vista {
+  margin-bottom: 16px;
+}
+
+.lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.orden {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+}
+
+.orden-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.numero {
+  font-weight: 700;
+  color: var(--df-primary);
+}
+
+.orden-servicio {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.orden-detalle {
+  margin: 0;
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.orden-fecha {
+  margin: 0;
+  font-size: 12px;
+}
+
+.orden-accion {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.vacio {
+  margin-bottom: 16px;
+}

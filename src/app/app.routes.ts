@@ -3,6 +3,7 @@ import { LayoutComponent } from './shared/components/layout/layout.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { authGuard } from './core/auth/guards/auth-guard';
 import { roleGuard } from './core/auth/guards/role-guard';
+import { inicioTecnicoGuard } from './core/auth/guards/inicio-tecnico-guard';
 
 export const routes: Routes = [
   {
@@ -30,14 +31,14 @@ export const routes: Routes = [
       },
       {
         path: 'catalog',
+        canActivate: [inicioTecnicoGuard],
         loadComponent: () => import('./features/catalog/catalog').then((m) => m.Catalog),
       },
       {
         path: 'catalog/repuestos',
         canActivate: [roleGuard],
-        // Los roles del caso son ADMIN, SUPERVISOR, CLIENTE y AUDITOR. TECNICO
-        // no existe: dejarlo aqui no abria nada, pero la lista quedaba sin los
-        // roles que si tienen que entrar a repuestos.
+        // El TECNICO no entra a repuestos: el stock lo descuenta catalog al
+        // asignar la orden, no el tecnico a mano.
         data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR'] },
         loadComponent: () =>
           import('./features/catalog/repuestos/repuestos').then((m) => m.Repuestos),
@@ -51,6 +52,14 @@ export const routes: Routes = [
         data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR', 'CLIENTE'] },
         loadComponent: () =>
           import('./features/workorders/workorders').then((m) => m.Workorders),
+      },
+      {
+        // Rol TECNICO: sus ordenes asignadas y el avance en terreno.
+        path: 'mis-ordenes',
+        canActivate: [roleGuard],
+        data: { roles: ['TECNICO'] },
+        loadComponent: () =>
+          import('./features/workorders/mis-ordenes/mis-ordenes').then((m) => m.MisOrdenes),
       },
       {
         // Tecnicos de terreno: los gestiona quien asigna las ordenes.

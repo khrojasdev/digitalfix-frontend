@@ -38,7 +38,7 @@ export class LayoutComponent {
     shareReplay(),
   );
 
-  // Los cuatro roles del caso son ADMIN, SUPERVISOR, CLIENTE y AUDITOR.
+  // Roles: ADMIN, SUPERVISOR, CLIENTE, AUDITOR y TECNICO (personal de terreno).
   // Los roles salen de /api/me, no del token: ver AuthContextService.
   readonly puedeVerPanel$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR']);
   readonly puedeVerCatalogo$ = this.authContext.tieneAlguno$([
@@ -54,6 +54,7 @@ export class LayoutComponent {
     'AUDITOR',
     'CLIENTE',
   ]);
+  readonly esTecnico$ = this.authContext.tieneAlguno$(['TECNICO']);
   readonly puedeGestionarTecnicos$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
   readonly puedeVerReportes$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
   readonly puedeAuditar$ = this.authContext.tieneAlguno$(['ADMIN', 'AUDITOR']);

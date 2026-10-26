@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../../core/http/api.service';
+import type { Tecnico } from './tecnicos/tecnicos.service';
 
 export type EstadoOrden = 'CREADA' | 'ASIGNADA' | 'EN_DESPLAZAMIENTO' | 'EN_EJECUCION' | 'CERRADA' | 'CANCELADA';
 
@@ -17,6 +18,12 @@ export interface Orden {
   fechaActualizacion: string | null;
   tecnicoId?: number | null;
   creadorId?: string | null;
+}
+
+/** Lo que ve el TECNICO: su ficha y sus ordenes. */
+export interface MisOrdenes {
+  tecnico: Tecnico;
+  ordenes: Orden[];
 }
 
 export interface NuevaOrden {
@@ -61,6 +68,23 @@ export const TRANSICIONES: Record<EstadoOrden, EstadoOrden[]> = {
 
 export const ESTADOS_ABIERTOS: EstadoOrden[] = ['CREADA', 'ASIGNADA', 'EN_DESPLAZAMIENTO', 'EN_EJECUCION'];
 
+/**
+ * El siguiente paso que marca el TECNICO en terreno, con el texto del boton.
+ * null si la orden ya no tiene nada que hacer de su lado.
+ */
+export function pasoDelTecnico(estado: EstadoOrden): { destino: EstadoOrden; accion: string; icono: string } | null {
+  switch (estado) {
+    case 'ASIGNADA':
+      return { destino: 'EN_DESPLAZAMIENTO', accion: 'Salir a terreno', icono: 'directions_car' };
+    case 'EN_DESPLAZAMIENTO':
+      return { destino: 'EN_EJECUCION', accion: 'Iniciar trabajo', icono: 'build' };
+    case 'EN_EJECUCION':
+      return { destino: 'CERRADA', accion: 'Cerrar orden', icono: 'task_alt' };
+    default:
+      return null;
+  }
+}
+
 /** Se puede asignar (o reasignar) tecnico mientras la orden no sale a terreno. */
 export function admiteAsignacion(estado: EstadoOrden): boolean {
   return estado === 'CREADA' || estado === 'ASIGNADA';
@@ -87,6 +111,11 @@ export class OrdenesService {
     return this.api.put<Orden>(`api/workorders/${id}/status`, { status: nuevoEstado });
   }
 
+  /** Rol TECNICO: su ficha y las ordenes que tiene asignadas. */
+  misOrdenes(): Observable<MisOrdenes> {
+    return this.api.get<MisOrdenes>('api/workorders/mias');
+  }
+
   /** El supervisor asigna un tecnico: la orden pasa a ASIGNADA. */
   asignarTecnico(id: number, tecnicoId: number): Observable<Orden> {
     return this.api.put<Orden>(`api/workorders/${id}/asignacion`, { tecnicoId });
@@ -100,7 +129,7 @@ export function mensajeOrdenes(error: unknown, accion: string): string {
     const detalle = (cuerpo?.mensaje ?? cuerpo?.message ?? '').trim();
     if (error.status === 0) return 'No hay conexión con el servidor.';
     if (error.status === 400) return detalle || 'Los datos de la orden no son válidos.';
-    if (error.status === 403) return 'Tu rol no permite esta acción.';
+    if (error.status === 403) return detalle || 'Tu rol no permite esta acción.';
     if (error.status === 404) return detalle || 'La orden no existe en tu empresa.';
     if (error.status === 409) return detalle || 'El cambio no es válido para el estado actual de la orden.';
     if (error.status === 503) return 'El servicio de órdenes no está disponible en este momento.';
