@@ -76,7 +76,7 @@ describe('Dashboard', () => {
   it('cuenta las órdenes abiertas y cerradas', () => {
     responder([], 0, [], [
       { id: 1, servicioId: 1, estado: 'CREADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-01T10:00:00', fechaActualizacion: null },
-      { id: 2, servicioId: 1, estado: 'INICIADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-02T10:00:00', fechaActualizacion: null },
+      { id: 2, servicioId: 1, estado: 'EN_EJECUCION', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-02T10:00:00', fechaActualizacion: null },
       { id: 3, servicioId: 1, estado: 'CERRADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-03T10:00:00', fechaActualizacion: null },
     ]);
     const c = fixture.componentInstance as any;

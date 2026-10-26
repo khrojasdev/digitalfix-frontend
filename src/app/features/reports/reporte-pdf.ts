@@ -1,4 +1,4 @@
-import { NOMBRE_ESTADO } from '../workorders/ordenes.service';
+import { NOMBRE_TIPO_EVENTO } from '../workorders/ordenes.service';
 import { formatoDuracion } from './reportes.service';
 
 export interface DatosReporte {
@@ -94,7 +94,7 @@ export async function crearReportePdf(datos: DatosReporte): Promise<import('jspd
     head: [['Estado', 'Órdenes', '% del total']],
     body: estados.length
       ? estados.map(([estado, n]) => [
-          (NOMBRE_ESTADO as Record<string, string>)[estado] ?? estado,
+          NOMBRE_TIPO_EVENTO[estado] ?? estado,
           String(n),
           datos.ordenesTotales ? `${Math.round((n / datos.ordenesTotales) * 100)}%` : '0%',
         ])

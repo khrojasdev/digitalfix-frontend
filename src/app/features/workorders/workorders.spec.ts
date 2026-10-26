@@ -11,7 +11,7 @@ import { cuentaDePrueba, proveedoresMsalDePrueba } from '../../../testing/msal-d
 
 const ORDENES = [
   { id: 1, servicioId: 5, estado: 'CREADA', asignadoA: null, comentarios: 'Tablero sala 2', fechaCreacion: '2026-10-18T12:00:00', fechaActualizacion: null },
-  { id: 2, servicioId: 6, estado: 'INICIADA', asignadoA: 'tecnico-1', comentarios: null, fechaCreacion: '2026-10-19T09:30:00', fechaActualizacion: '2026-10-19T10:00:00' },
+  { id: 2, servicioId: 6, estado: 'EN_EJECUCION', asignadoA: 'tecnico-1', comentarios: null, fechaCreacion: '2026-10-19T09:30:00', fechaActualizacion: '2026-10-19T10:00:00' },
   { id: 3, servicioId: 5, estado: 'CERRADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-20T08:00:00', fechaActualizacion: null },
 ];
 
@@ -66,7 +66,7 @@ describe('Workorders', () => {
     cargar();
     expect(texto()).toContain('Órdenes de trabajo');
     expect(texto()).toContain('Mantención preventiva de tablero');
-    expect(texto()).toContain('En curso');
+    expect(texto()).toContain('En ejecución');
   });
 
   it('calcula los indicadores de abiertas, cerradas y canceladas', async () => {
@@ -91,18 +91,42 @@ describe('Workorders', () => {
     expect(c.filtradas().map((o: any) => o.id)).toEqual([2]);
   });
 
-  it('cambia el estado con PUT y actualiza la fila', async () => {
+  it('cambia el estado con PUT /status y actualiza la fila', async () => {
     await configurar();
     cargar();
     const c = fixture.componentInstance as any;
-    c.cambiarEstado(ORDENES[0], 'ASIGNADA');
+    c.cambiarEstado(ORDENES[1], 'CERRADA');
 
-    const put = http.expectOne((r) => r.url.startsWith(`${base}/api/workorders/1/estado`));
+    const put = http.expectOne(`${base}/api/workorders/2/status`);
     expect(put.request.method).toBe('PUT');
-    expect(put.request.url).toContain('nuevoEstado=ASIGNADA');
-    put.flush({ ...ORDENES[0], estado: 'ASIGNADA' });
+    expect(put.request.body).toEqual({ status: 'CERRADA' });
+    put.flush({ ...ORDENES[1], estado: 'CERRADA' });
 
-    expect(c.ordenes().find((o: any) => o.id === 1).estado).toBe('ASIGNADA');
+    expect(c.ordenes().find((o: any) => o.id === 2).estado).toBe('CERRADA');
+  });
+
+  it('muestra el motivo cuando el backend rechaza la transición', async () => {
+    await configurar();
+    cargar();
+    const c = fixture.componentInstance as any;
+    const aviso = vi.spyOn((c as any).aviso, 'open');
+    c.cambiarEstado(ORDENES[0], 'EN_EJECUCION');
+    http.expectOne(`${base}/api/workorders/1/status`).flush(
+      { codigo: 'TRANSICION_INVALIDA', mensaje: 'No se puede pasar a EN_EJECUCION sin ASIGNAR un tecnico.' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    expect(aviso).toHaveBeenCalledWith('No se puede pasar a EN_EJECUCION sin ASIGNAR un tecnico.', 'Cerrar', expect.anything());
+    expect(c.ordenes().find((o: any) => o.id === 1).estado).toBe('CREADA');
+  });
+
+  it('el menú de estado no ofrece ASIGNADA ni saltarse etapas', async () => {
+    await configurar();
+    cargar();
+    const c = fixture.componentInstance as any;
+    expect(c.transiciones['CREADA']).toEqual(['CANCELADA']);
+    expect(c.transiciones['ASIGNADA']).toEqual(['EN_DESPLAZAMIENTO', 'CANCELADA']);
+    expect(c.transiciones['EN_DESPLAZAMIENTO']).toEqual(['EN_EJECUCION', 'CANCELADA']);
+    expect(c.transiciones['EN_EJECUCION']).toEqual(['CERRADA']);
   });
 
   it('si la orden sale del filtro y la página queda vacía, vuelve a una con filas', async () => {
@@ -112,8 +136,8 @@ describe('Workorders', () => {
     c.tamano.set(1);
     c.actualizarFiltro({ estado: 'CREADA' });
     expect(c.filtradas()).toHaveLength(1);
-    c.cambiarEstado(ORDENES[0], 'ASIGNADA');
-    http.expectOne((r) => r.url.startsWith(`${base}/api/workorders/1/estado`)).flush({ ...ORDENES[0], estado: 'ASIGNADA' });
+    c.cambiarEstado(ORDENES[0], 'CANCELADA');
+    http.expectOne(`${base}/api/workorders/1/status`).flush({ ...ORDENES[0], estado: 'CANCELADA' });
     expect(c.filtradas()).toHaveLength(0);
     expect(c.pagina()).toBe(0);
   });
