@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
-import { ESTADOS, NOMBRE_ESTADO } from '../workorders/ordenes.service';
+import { ESTADOS, NOMBRE_TIPO_EVENTO } from '../workorders/ordenes.service';
 import { NotificacionesService } from './notificaciones.service';
 import { Aviso, AvisoStock } from './notificaciones.models';
 
@@ -52,7 +52,7 @@ export class Notificaciones implements OnInit {
   protected readonly avisosStock = signal<AvisoStock[]>([]);
 
   protected readonly tipos = ESTADOS;
-  protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_ESTADO;
+  protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_TIPO_EVENTO;
 
   /** Filtros sobre lo que devolvio notify (las listas llegan completas). */
   protected readonly texto = signal('');

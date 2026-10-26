@@ -16,7 +16,8 @@ import { ESTADOS, ESTADOS_ABIERTOS, NOMBRE_ESTADO, Orden, OrdenesService } from 
 const COLOR_ESTADO: Record<string, string> = {
   CREADA: 'var(--df-info)',
   ASIGNADA: 'var(--df-violeta)',
-  INICIADA: 'var(--df-aviso)',
+  EN_DESPLAZAMIENTO: 'var(--df-acento)',
+  EN_EJECUCION: 'var(--df-aviso)',
   CERRADA: 'var(--df-exito)',
   CANCELADA: 'var(--df-peligro)',
 };

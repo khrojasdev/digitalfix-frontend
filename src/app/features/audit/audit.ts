@@ -17,7 +17,7 @@ import { take } from 'rxjs';
 
 import { AuthContextService } from '../../core/auth/auth-context.service';
 import { descargarCsv, fechaParaArchivo } from '../../core/util/exportar-csv';
-import { ESTADOS, NOMBRE_ESTADO } from '../workorders/ordenes.service';
+import { ESTADOS, NOMBRE_TIPO_EVENTO } from '../workorders/ordenes.service';
 import { AuditoriaService, EventoAuditoria, FILTRO_AUDITORIA_VACIO, FiltroAuditoria } from './auditoria.service';
 import { UsuarioResumen, UsuariosService } from './usuarios.service';
 
@@ -61,7 +61,7 @@ export class Audit implements OnInit {
   private readonly authContext = inject(AuthContextService);
 
   protected readonly tipos = ESTADOS;
-  protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_ESTADO;
+  protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_TIPO_EVENTO;
   protected readonly columnas = ['fecha', 'tipoEvento', 'ordenId', 'autorId', 'correlacionId'];
 
   protected readonly cargando = signal(false);

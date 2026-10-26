@@ -21,6 +21,7 @@ import { descargarCsv, fechaParaArchivo } from '../../core/util/exportar-csv';
 import { CatalogoService } from '../catalog/catalogo.service';
 import { Servicio } from '../catalog/catalogo.models';
 import { FILTRO_VACIO, FiltroOrdenes, filtrarOrdenes, hayFiltro } from './filtro-ordenes';
+import { AsignarTecnicoDialog, DatosAsignacion } from './asignar-tecnico.dialog';
 import { DatosNuevaOrden, NuevaOrdenDialog } from './nueva-orden.dialog';
 import {
   ESTADOS,
@@ -30,12 +31,14 @@ import {
   Orden,
   OrdenesService,
   TRANSICIONES,
+  admiteAsignacion,
   mensajeOrdenes,
 } from './ordenes.service';
 
 /**
- * Ordenes de trabajo de la empresa: resumen, filtros, creacion y cambio de
- * estado. Todo pasa por el BFF, que filtra por la empresa del token.
+ * Ordenes de trabajo de la empresa: resumen, filtros, creacion, asignacion de
+ * tecnico y cambio de estado. Todo pasa por el BFF, que filtra por la empresa
+ * del token.
  */
 @Component({
   selector: 'app-workorders',
@@ -69,6 +72,7 @@ export class Workorders implements OnInit {
   // Indexados por string porque en la plantilla la fila de mat-table llega sin tipo.
   protected readonly nombreEstado: Record<string, string | undefined> = NOMBRE_ESTADO;
   protected readonly transiciones: Record<string, EstadoOrden[]> = TRANSICIONES;
+  protected readonly admiteAsignacion = admiteAsignacion;
   protected readonly columnas = ['id', 'servicio', 'estado', 'asignadoA', 'fechaCreacion', 'fechaActualizacion', 'acciones'];
 
   /** Crear: quien opera o solicita. Cambiar estado: quien gestiona. AUDITOR solo mira. */
@@ -203,6 +207,20 @@ export class Workorders implements OnInit {
     });
   }
 
+  /** Abre la eleccion de tecnico; al confirmar, la orden vuelve ASIGNADA. */
+  protected asignar(orden: Orden): void {
+    const ref = this.dialogo.open<AsignarTecnicoDialog, DatosAsignacion>(AsignarTecnicoDialog, {
+      data: { orden, servicio: this.nombreServicio(orden.servicioId) },
+      autoFocus: 'first-tabbable',
+    });
+    ref.afterClosed().subscribe((actualizada: Orden | undefined) => {
+      if (!actualizada) return;
+      this.ordenes.update((lista) => lista.map((o) => (o.id === actualizada.id ? actualizada : o)));
+      this.ajustarPagina();
+      this.avisar(`Orden #${actualizada.id} asignada a ${actualizada.asignadoA ?? 'un técnico'}.`);
+    });
+  }
+
   protected cambiarEstado(orden: Orden, nuevo: EstadoOrden): void {
     this.cambiando.set(orden.id);
     this.service.cambiarEstado(orden.id, nuevo).subscribe({
@@ -222,7 +240,7 @@ export class Workorders implements OnInit {
   protected exportar(): void {
     descargarCsv(
       `ordenes-${fechaParaArchivo()}.csv`,
-      ['Orden', 'Código servicio', 'Servicio', 'Estado', 'Asignada a', 'Comentarios', 'Creada', 'Actualizada'],
+      ['Orden', 'Código servicio', 'Servicio', 'Estado', 'Técnico', 'Comentarios', 'Creada', 'Actualizada'],
       this.filtradas().map((o) => [
         o.id,
         this.codigoServicio(o.servicioId),

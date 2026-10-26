@@ -37,9 +37,17 @@
       }
 
       @if (puedeVerOrdenes$ | async) {
-        <a class="item" routerLink="/workorders" routerLinkActive="activo">
+        <a class="item" routerLink="/workorders" routerLinkActive="activo"
+           [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon>assignment</mat-icon>
           <span>Órdenes de trabajo</span>
+        </a>
+      }
+
+      @if (puedeGestionarTecnicos$ | async) {
+        <a class="item" routerLink="/workorders/tecnicos" routerLinkActive="activo">
+          <mat-icon>engineering</mat-icon>
+          <span>Técnicos</span>
         </a>
       }
 

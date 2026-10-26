@@ -1,0 +1,122 @@
+<section class="pagina">
+  <header class="encabezado-pagina">
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>engineering</mat-icon></span>
+      <div>
+        <h1>Técnicos</h1>
+        <p class="subtitulo">Personal de terreno que se asigna a las órdenes de trabajo.</p>
+      </div>
+    </div>
+    <div class="acciones-pagina">
+      <a mat-stroked-button routerLink="/workorders">
+        <mat-icon>assignment</mat-icon>
+        Órdenes
+      </a>
+      <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+      <button mat-flat-button type="button" (click)="nuevo()">
+        <mat-icon>person_add</mat-icon>
+        Nuevo técnico
+      </button>
+    </div>
+  </header>
+
+  <section class="filtros" aria-label="Filtros de técnicos">
+    <mat-form-field appearance="outline" class="filtro-busqueda" subscriptSizing="dynamic">
+      <mat-label>Buscar</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="texto()" (ngModelChange)="texto.set($event)" placeholder="Nombre, correo o especialidad" />
+    </mat-form-field>
+    <mat-slide-toggle [ngModel]="verInactivos()" (ngModelChange)="verInactivos.set($event)">
+      Mostrar desactivados
+    </mat-slide-toggle>
+    <span class="texto-suave">{{ activos() }} activos de {{ tecnicos().length }}</span>
+  </section>
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando técnicos"></mat-progress-bar>
+  }
+  @if (error()) {
+    <div class="mensaje mensaje--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      {{ error() }}
+    </div>
+  }
+
+  <div class="tarjeta">
+    @if (visibles().length > 0) {
+      <div class="contenedor-tabla sin-borde">
+        <table mat-table [dataSource]="visibles()">
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let t">{{ t.nombre }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="contacto">
+            <th mat-header-cell *matHeaderCellDef>Contacto</th>
+            <td mat-cell *matCellDef="let t">
+              <div>{{ t.email }}</div>
+              @if (t.telefono) {
+                <div class="texto-suave">{{ t.telefono }}</div>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="especialidad">
+            <th mat-header-cell *matHeaderCellDef>Especialidad</th>
+            <td mat-cell *matCellDef="let t" class="texto-suave">{{ t.especialidad || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let t">
+              <span class="etiqueta" [class.etiqueta--activo]="t.activo" [class.etiqueta--inactivo]="!t.activo">
+                {{ t.activo ? 'Activo' : 'Desactivado' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="fechaCreacion">
+            <th mat-header-cell *matHeaderCellDef>Alta</th>
+            <td mat-cell *matCellDef="let t" class="texto-suave">{{ t.fechaCreacion | date: 'dd-MM-yyyy' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef class="derecha">Acciones</th>
+            <td mat-cell *matCellDef="let t" class="derecha">
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editar(t)"
+                      [disabled]="trabajando() === t.id" [attr.aria-label]="'Editar a ' + t.nombre">
+                <mat-icon>edit</mat-icon>
+              </button>
+              @if (t.activo) {
+                <button mat-icon-button type="button" matTooltip="Desactivar" (click)="desactivar(t)"
+                        [disabled]="trabajando() === t.id" [attr.aria-label]="'Desactivar a ' + t.nombre">
+                  <mat-icon>person_off</mat-icon>
+                </button>
+              } @else {
+                <button mat-icon-button type="button" matTooltip="Reactivar" (click)="reactivar(t)"
+                        [disabled]="trabajando() === t.id" [attr.aria-label]="'Reactivar a ' + t.nombre">
+                  <mat-icon>how_to_reg</mat-icon>
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+          <tr mat-row *matRowDef="let fila; columns: columnas"></tr>
+        </table>
+      </div>
+    } @else if (!cargando() && !error()) {
+      <div class="vacio">
+        <mat-icon>engineering</mat-icon>
+        @if (tecnicos().length === 0) {
+          <span>Todavía no hay técnicos. Agrega el primero para poder asignar órdenes.</span>
+        } @else {
+          <span>Ningún técnico coincide con la búsqueda.</span>
+        }
+      </div>
+    }
+  </div>
+</section>

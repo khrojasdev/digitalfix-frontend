@@ -296,7 +296,9 @@ mat-card.mat-mdc-card {
 .etiqueta--CERRADA { background: var(--df-exito-suave); color: var(--df-exito); }
 .etiqueta--inactivo { background: color-mix(in srgb, var(--df-texto) 8%, transparent); color: var(--df-texto-suave); }
 .etiqueta--aviso,
+.etiqueta--EN_EJECUCION,
 .etiqueta--INICIADA { background: var(--df-aviso-suave); color: var(--df-aviso); }
+.etiqueta--EN_DESPLAZAMIENTO { background: color-mix(in srgb, var(--df-acento) 14%, transparent); color: var(--df-acento); }
 .etiqueta--peligro,
 .etiqueta--CANCELADA { background: var(--df-peligro-suave); color: var(--mat-sys-on-error-container); }
 .etiqueta--CREADA { background: var(--df-info-suave); color: var(--df-info); }

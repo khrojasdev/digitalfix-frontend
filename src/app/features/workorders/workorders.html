@@ -4,7 +4,7 @@
       <span class="icono-pagina"><mat-icon>assignment</mat-icon></span>
       <div>
         <h1>Órdenes de trabajo</h1>
-        <p class="subtitulo">Crea órdenes, sigue su avance y cámbiales el estado.</p>
+        <p class="subtitulo">Crea órdenes, asígnalas a un técnico y sigue su avance.</p>
       </div>
     </div>
     <div class="acciones-pagina">
@@ -39,7 +39,7 @@
       <div class="kpi-datos">
         <span class="kpi-etiqueta">Abiertas</span>
         <span class="kpi-valor">{{ abiertas() }}</span>
-        <span class="kpi-nota">creadas, asignadas o en curso</span>
+        <span class="kpi-nota">creadas, asignadas, en camino o en ejecución</span>
       </div>
     </div>
     <div class="kpi kpi--exito">
@@ -149,8 +149,14 @@
           </ng-container>
 
           <ng-container matColumnDef="asignadoA">
-            <th mat-header-cell *matHeaderCellDef>Asignada a</th>
-            <td mat-cell *matCellDef="let o" class="texto-suave">{{ o.asignadoA || '—' }}</td>
+            <th mat-header-cell *matHeaderCellDef>Técnico</th>
+            <td mat-cell *matCellDef="let o" [class.texto-suave]="!o.asignadoA">
+              @if (o.asignadoA) {
+                <span class="tecnico"><mat-icon inline>engineering</mat-icon>{{ o.asignadoA }}</span>
+              } @else {
+                Sin asignar
+              }
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="fechaCreacion">
@@ -168,6 +174,13 @@
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef class="derecha">Acciones</th>
             <td mat-cell *matCellDef="let o" class="derecha">
+              @if ((puedeGestionar$ | async) && admiteAsignacion(o.estado)) {
+                <button mat-stroked-button type="button" class="boton-estado" (click)="asignar(o)"
+                        [disabled]="cambiando() === o.id" [attr.aria-label]="'Asignar técnico a la orden ' + o.id">
+                  <mat-icon>engineering</mat-icon>
+                  {{ o.estado === 'ASIGNADA' ? 'Reasignar' : 'Asignar' }}
+                </button>
+              }
               @if ((puedeGestionar$ | async) && transiciones[o.estado].length > 0) {
                 <button mat-stroked-button type="button" class="boton-estado" [matMenuTriggerFor]="menuEstado"
                         [disabled]="cambiando() === o.id" [attr.aria-label]="'Cambiar estado de la orden ' + o.id">
@@ -181,7 +194,7 @@
                     </button>
                   }
                 </mat-menu>
-              } @else {
+              } @else if (!(puedeGestionar$ | async) || !admiteAsignacion(o.estado)) {
                 <span class="texto-suave">—</span>
               }
             </td>

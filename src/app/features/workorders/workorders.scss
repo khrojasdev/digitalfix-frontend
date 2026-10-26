@@ -30,3 +30,13 @@
   height: 32px;
   font-size: 13px;
 }
+
+.boton-estado + .boton-estado {
+  margin-left: 6px;
+}
+
+.tecnico {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
