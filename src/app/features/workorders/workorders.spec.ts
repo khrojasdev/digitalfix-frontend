@@ -142,6 +142,29 @@ describe('Workorders', () => {
     expect(c.pagina()).toBe(0);
   });
 
+  it('ofrece Asignar en las creadas y Reasignar en las asignadas, no en las que ya salieron', async () => {
+    await configurar();
+    cargar();
+    const c = fixture.componentInstance as any;
+    expect(c.admiteAsignacion('CREADA')).toBe(true);
+    expect(c.admiteAsignacion('ASIGNADA')).toBe(true);
+    expect(c.admiteAsignacion('EN_DESPLAZAMIENTO')).toBe(false);
+    expect(texto()).toContain('Asignar');
+    expect(texto()).toContain('Sin asignar');
+  });
+
+  it('al cerrar la asignación actualiza la fila con el técnico', async () => {
+    await configurar();
+    cargar();
+    const c = fixture.componentInstance as any;
+    const asignada = { ...ORDENES[0], estado: 'ASIGNADA', asignadoA: 'Ana Rojas', tecnicoId: 1 };
+    vi.spyOn(c.dialogo, 'open').mockReturnValue({ afterClosed: () => ({ subscribe: (fn: any) => fn(asignada) }) });
+    c.asignar(ORDENES[0]);
+    expect(c.ordenes().find((o: any) => o.id === 1).asignadoA).toBe('Ana Rojas');
+    fixture.detectChanges();
+    expect(texto()).toContain('Ana Rojas');
+  });
+
   it('un AUDITOR no ve el botón de nueva orden', async () => {
     await configurar(['AUDITOR']);
     cargar(['AUDITOR']);
