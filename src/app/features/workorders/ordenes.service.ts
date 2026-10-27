@@ -20,6 +20,22 @@ export interface Orden {
   creadorId?: string | null;
 }
 
+/** Un paso del historial de la orden (creacion, asignacion o cambio de estado). */
+export interface CambioDeEstado {
+  estadoAnterior: EstadoOrden | null;
+  estadoNuevo: EstadoOrden;
+  autorId: string | null;
+  autorNombre: string | null;
+  comentario: string | null;
+  fecha: string;
+}
+
+/** GET /api/workorders/{id}: la orden y su historial. */
+export interface OrdenDetalle {
+  orden: Orden;
+  historial: CambioDeEstado[];
+}
+
 /** Lo que ve el TECNICO: su ficha y sus ordenes. */
 export interface MisOrdenes {
   tecnico: Tecnico;
@@ -51,7 +67,20 @@ export const NOMBRE_ESTADO: Record<EstadoOrden, string> = {
 export const NOMBRE_TIPO_EVENTO: Record<string, string | undefined> = {
   ...NOMBRE_ESTADO,
   INICIADA: 'En ejecución',
+  USUARIO_CREADO: 'Usuario creado',
+  USUARIO_ACTIVADO: 'Usuario activado',
+  USUARIO_DESACTIVADO: 'Usuario desactivado',
+  USUARIO_ROL_CAMBIADO: 'Rol cambiado',
 };
+
+/** Tipos de evento que se pueden filtrar en auditoria. */
+export const TIPOS_DE_EVENTO: string[] = [
+  ...ESTADOS,
+  'USUARIO_CREADO',
+  'USUARIO_ACTIVADO',
+  'USUARIO_DESACTIVADO',
+  'USUARIO_ROL_CAMBIADO',
+];
 
 /**
  * Cambios de estado que ofrece el menu, igual que los valida el backend.
@@ -107,8 +136,15 @@ export class OrdenesService {
   }
 
   /** PUT /api/workorders/{id}/status con {status}, como pide el caso. */
-  cambiarEstado(id: number, nuevoEstado: EstadoOrden): Observable<Orden> {
-    return this.api.put<Orden>(`api/workorders/${id}/status`, { status: nuevoEstado });
+  cambiarEstado(id: number, nuevoEstado: EstadoOrden, comentario?: string | null): Observable<Orden> {
+    // El comentario es opcional y queda en el historial de la orden.
+    const nota = comentario?.trim();
+    return this.api.put<Orden>(`api/workorders/${id}/status`, nota ? { status: nuevoEstado, comentario: nota } : { status: nuevoEstado });
+  }
+
+  /** La orden con su historial de estados y comentarios. */
+  detalle(id: number): Observable<OrdenDetalle> {
+    return this.api.get<OrdenDetalle>(`api/workorders/${id}`);
   }
 
   /** Rol TECNICO: su ficha y las ordenes que tiene asignadas. */
@@ -117,8 +153,9 @@ export class OrdenesService {
   }
 
   /** El supervisor asigna un tecnico: la orden pasa a ASIGNADA. */
-  asignarTecnico(id: number, tecnicoId: number): Observable<Orden> {
-    return this.api.put<Orden>(`api/workorders/${id}/asignacion`, { tecnicoId });
+  asignarTecnico(id: number, tecnicoId: number, comentario?: string | null): Observable<Orden> {
+    const nota = comentario?.trim();
+    return this.api.put<Orden>(`api/workorders/${id}/asignacion`, nota ? { tecnicoId, comentario: nota } : { tecnicoId });
   }
 }
 

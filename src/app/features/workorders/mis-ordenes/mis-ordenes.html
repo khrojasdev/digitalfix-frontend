@@ -76,7 +76,7 @@
     @for (o of visibles(); track o.id) {
       <article class="tarjeta orden">
         <div class="orden-cabecera">
-          <span class="numero">#{{ o.id }}</span>
+          <a class="numero" [routerLink]="['/workorders', o.id]" [attr.aria-label]="'Ver el detalle de la orden ' + o.id">#{{ o.id }}</a>
           <span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span>
         </div>
         <h2 class="orden-servicio">{{ nombreServicio(o.servicioId) }}</h2>
@@ -90,11 +90,15 @@
           }
         </p>
         @if (pasoDelTecnico(o.estado); as paso) {
-          <button mat-flat-button type="button" class="orden-accion" (click)="avanzar(o)" [disabled]="cambiando() === o.id">
+          <button mat-flat-button type="button" class="orden-accion" (click)="pedirComentario(o)" [disabled]="cambiando() === o.id">
             <mat-icon>{{ paso.icono }}</mat-icon>
             {{ paso.accion }}
           </button>
         }
+        <a mat-button class="orden-historial" [routerLink]="['/workorders', o.id]">
+          <mat-icon>history</mat-icon>
+          Historial y comentarios
+        </a>
       </article>
     }
   </div>

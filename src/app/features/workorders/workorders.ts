@@ -14,6 +14,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpErrorResponse } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { Observable, map, tap } from 'rxjs';
 
 import { AuthContextService } from '../../core/auth/auth-context.service';
@@ -22,6 +23,7 @@ import { CatalogoService } from '../catalog/catalogo.service';
 import { Servicio } from '../catalog/catalogo.models';
 import { FILTRO_VACIO, FiltroOrdenes, filtrarOrdenes, hayFiltro } from './filtro-ordenes';
 import { AsignarTecnicoDialog, DatosAsignacion } from './asignar-tecnico.dialog';
+import { CambioConfirmado, CambioEstadoDialog, DatosCambioEstado } from './cambio-estado.dialog';
 import { DatosNuevaOrden, NuevaOrdenDialog } from './nueva-orden.dialog';
 import {
   ESTADOS,
@@ -57,6 +59,7 @@ import {
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    RouterLink,
   ],
   templateUrl: './workorders.html',
   styleUrl: './workorders.scss',
@@ -221,9 +224,20 @@ export class Workorders implements OnInit {
     });
   }
 
-  protected cambiarEstado(orden: Orden, nuevo: EstadoOrden): void {
+  /** Pide un comentario opcional y despues cambia el estado. */
+  protected confirmarCambio(orden: Orden, nuevo: EstadoOrden): void {
+    const ref = this.dialogo.open<CambioEstadoDialog, DatosCambioEstado, CambioConfirmado>(CambioEstadoDialog, {
+      data: { ordenId: orden.id, destino: nuevo },
+      autoFocus: 'first-tabbable',
+    });
+    ref.afterClosed().subscribe((confirmado) => {
+      if (confirmado) this.cambiarEstado(orden, nuevo, confirmado.comentario);
+    });
+  }
+
+  protected cambiarEstado(orden: Orden, nuevo: EstadoOrden, comentario?: string | null): void {
     this.cambiando.set(orden.id);
-    this.service.cambiarEstado(orden.id, nuevo).subscribe({
+    this.service.cambiarEstado(orden.id, nuevo, comentario).subscribe({
       next: (actualizada) => {
         this.ordenes.update((lista) => lista.map((o) => (o.id === actualizada.id ? actualizada : o)));
         this.ajustarPagina();

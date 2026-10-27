@@ -1,0 +1,87 @@
+.rejilla-detalle {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.bloque {
+  padding: 16px 20px;
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+
+  dt {
+    color: var(--df-texto-suave);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.texto-largo {
+  white-space: pre-wrap;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.linea-tiempo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 12px;
+  padding-bottom: 16px;
+  position: relative;
+
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 16px;
+    bottom: 0;
+    width: 2px;
+    background: var(--df-borde);
+  }
+}
+
+.punto {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-top: 4px;
+  background: var(--df-info-suave);
+  border: 2px solid currentColor;
+}
+
+.paso-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.paso-quien {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.paso-comentario {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--df-radio-chico);
+  background: color-mix(in srgb, var(--df-texto) 5%, transparent);
+  white-space: pre-wrap;
+}

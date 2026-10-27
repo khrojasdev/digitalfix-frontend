@@ -10,6 +10,11 @@
 .numero {
   font-weight: 700;
   color: var(--df-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .servicio {
