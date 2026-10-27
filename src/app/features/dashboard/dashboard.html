@@ -49,6 +49,7 @@
           <span class="kpi-nota">{{ tasaCierre() }}% del total</span>
         </div>
       </div>
+      @if (!(soloCliente$ | async)) {
       <div class="kpi kpi--info">
         <span class="kpi-icono"><mat-icon>design_services</mat-icon></span>
         <div class="kpi-datos">
@@ -81,7 +82,52 @@
           <span class="kpi-nota">{{ bajoMinimo().length > 0 ? 'requieren reposición' : 'todo en nivel' }}</span>
         </div>
       </div>
+      }
     </section>
+
+    @if (gestiona$ | async) {
+      <section class="rejilla-2">
+        <div class="tarjeta bloque">
+          <h2 class="tarjeta-titulo">
+            Por asignar
+            <span class="etiqueta etiqueta--CREADA">{{ porAsignar().length }}</span>
+          </h2>
+          @if (porAsignar().length === 0) {
+            <div class="vacio"><mat-icon>check_circle</mat-icon><span>No hay órdenes esperando técnico.</span></div>
+          } @else {
+            <ul class="recientes">
+              @for (o of porAsignar(); track o.id) {
+                <li>
+                  <a class="numero" [routerLink]="['/workorders', o.id]">#{{ o.id }}</a>
+                  <span class="recientes-servicio">{{ nombreServicio(o.servicioId) }}</span>
+                  <span class="texto-suave fecha">desde {{ o.fechaCreacion | date: 'dd-MM HH:mm' }}</span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <div class="tarjeta bloque">
+          <h2 class="tarjeta-titulo">
+            En terreno
+            <span class="etiqueta etiqueta--EN_EJECUCION">{{ enTerreno().length }}</span>
+          </h2>
+          @if (enTerreno().length === 0) {
+            <div class="vacio"><mat-icon>directions_car</mat-icon><span>Ningún técnico en terreno ahora.</span></div>
+          } @else {
+            <ul class="recientes">
+              @for (o of enTerreno(); track o.id) {
+                <li>
+                  <a class="numero" [routerLink]="['/workorders', o.id]">#{{ o.id }}</a>
+                  <span class="recientes-servicio">{{ o.asignadoA || 'Sin técnico' }}</span>
+                  <span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </section>
+    }
 
     <section class="rejilla-2">
       <div class="tarjeta bloque">
@@ -103,7 +149,7 @@
 
       <div class="tarjeta bloque">
         <h2 class="tarjeta-titulo">
-          Últimas órdenes
+          {{ (soloCliente$ | async) ? 'Mis últimas órdenes' : 'Últimas órdenes' }}
           <a mat-button routerLink="/workorders">Ver todas</a>
         </h2>
         @if (recientes().length === 0) {
@@ -112,7 +158,7 @@
           <ul class="recientes">
             @for (o of recientes(); track o.id) {
               <li>
-                <span class="numero">#{{ o.id }}</span>
+                <a class="numero" [routerLink]="['/workorders', o.id]">#{{ o.id }}</a>
                 <span class="recientes-servicio">{{ nombreServicio(o.servicioId) }}</span>
                 <span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span>
                 <span class="texto-suave fecha">{{ o.fechaCreacion | date: 'dd-MM HH:mm' }}</span>
@@ -123,6 +169,7 @@
       </div>
     </section>
 
+    @if (!(soloCliente$ | async)) {
     <section class="rejilla-2">
       <div class="tarjeta bloque">
         <h2 class="tarjeta-titulo">
@@ -172,5 +219,6 @@
         </dl>
       </div>
     </section>
+    }
   }
 </section>

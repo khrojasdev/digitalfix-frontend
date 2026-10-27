@@ -87,7 +87,7 @@ describe('LayoutComponent', () => {
     expect(texto()).not.toContain('Auditoría');
   });
 
-  it('un CLIENTE ve el catalogo pero no el panel', async () => {
+  it('un CLIENTE ve el catalogo y su panel, pero no repuestos', async () => {
     responderPerfil({
       oid: 'oid-2',
       email: 'cliente@digitalfix.cl',
@@ -101,7 +101,8 @@ describe('LayoutComponent', () => {
     fixture.detectChanges();
 
     expect(texto()).toContain('Catálogo');
-    expect(texto()).not.toContain('Panel');
+    expect(texto()).toContain('Panel');
+    expect(texto()).not.toContain('Repuestos');
   });
 
   it('un TECNICO ve solo Mis órdenes', async () => {

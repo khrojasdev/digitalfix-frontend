@@ -151,4 +151,40 @@ describe('Dashboard', () => {
     http.match((r) => r.url.endsWith('/api/me')).forEach((r) => r.flush(null));
     http.verify();
   });
+  function rol(roles: string[]) {
+    http.match((r) => r.url.endsWith('/api/me')).forEach((r) =>
+      r.flush({ oid: 'oid-1', email: 'a@b.cl', name: 'Persona', companyId: '1', companyName: 'E', roles }),
+    );
+  }
+
+  function ordenesDePrueba() {
+    return [
+      { id: 1, servicioId: 5, estado: 'CREADA', asignadoA: null, comentarios: null, fechaCreacion: '2026-10-26T09:00:00', fechaActualizacion: null },
+      { id: 2, servicioId: 5, estado: 'EN_EJECUCION', asignadoA: 'Pedro Soto', comentarios: null, fechaCreacion: '2026-10-26T08:00:00', fechaActualizacion: '2026-10-26T10:00:00' },
+      { id: 3, servicioId: 5, estado: 'CERRADA', asignadoA: 'Pedro Soto', comentarios: null, fechaCreacion: '2026-10-25T08:00:00', fechaActualizacion: null },
+    ];
+  }
+
+  it('el supervisor ve las órdenes por asignar y las que están en terreno', () => {
+    rol(['SUPERVISOR']);
+    responder([], 0, [], ordenesDePrueba());
+    fixture.detectChanges();
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('Por asignar');
+    expect(texto).toContain('En terreno');
+    const c = fixture.componentInstance as any;
+    expect(c.porAsignar().map((o: any) => o.id)).toEqual([1]);
+    expect(c.enTerreno().map((o: any) => o.id)).toEqual([2]);
+  });
+
+  it('el cliente ve el estado de sus órdenes, sin stock ni tareas de asignación', () => {
+    rol(['CLIENTE']);
+    http.match((r) => r.url.includes('/services') || r.url.includes('/parts')).forEach((r) => r.flush(r.request.url.endsWith('low-stock') ? [] : { content: [], totalElements: 0, totalPages: 1, number: 0, size: 1 }));
+    http.expectOne((r) => r.url.endsWith('/api/workorders')).flush(ordenesDePrueba());
+    fixture.detectChanges();
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('Órdenes abiertas');
+    expect(texto).not.toContain('Bajo stock mínimo');
+    expect(texto).not.toContain('Por asignar');
+  });
 });
