@@ -17,9 +17,17 @@ import { descargarCsv, fechaParaArchivo } from '../../core/util/exportar-csv';
 import { CatalogoService } from '../catalog/catalogo.service';
 import { Servicio } from '../catalog/catalogo.models';
 import { ESTADOS, NOMBRE_ESTADO, Orden, OrdenesService } from '../workorders/ordenes.service';
-import { ordenesEnPeriodo, rankingDesdeOrdenes, resumirOrdenes } from './resumen-ordenes';
+import { ordenesEnPeriodo, porHoraDesdeOrdenes, rankingDesdeOrdenes, resumirOrdenes } from './resumen-ordenes';
 import { descargarReportePdf } from './reporte-pdf';
-import { Indicadores, PERIODOS, Periodo, ReportesService, ServicioRanking, formatoDuracion } from './reportes.service';
+import {
+  Indicadores,
+  OrdenesPorHora,
+  PERIODOS,
+  Periodo,
+  ReportesService,
+  ServicioRanking,
+  formatoDuracion,
+} from './reportes.service';
 
 const COLOR_ESTADO: Record<string, string> = {
   CREADA: 'var(--df-info)',
@@ -74,6 +82,7 @@ export class Reports implements OnInit {
   protected readonly errorOrdenes = signal<string | null>(null);
   private readonly indicadoresReport = signal<Indicadores | null>(null);
   private readonly rankingReport = signal<ServicioRanking[]>([]);
+  private readonly porHoraReport = signal<OrdenesPorHora[]>([]);
   private readonly ordenes = signal<Orden[]>([]);
   private readonly servicios = signal<Map<number, Servicio>>(new Map());
 
@@ -150,6 +159,30 @@ export class Reports implements OnInit {
     }));
   });
 
+  /**
+   * KPI del caso "ordenes por hora": cuantas ordenes se crearon en cada hora
+   * del dia dentro del periodo. Sale de ms-report; si este no tiene datos, de
+   * las ordenes.
+   */
+  protected readonly porHora = computed<OrdenesPorHora[]>(() => {
+    const report = this.porHoraReport();
+    if (this.fuente() === 'report' && report.some((h) => h.cantidad > 0)) return report;
+    return porHoraDesdeOrdenes(this.ordenesPeriodo());
+  });
+
+  protected readonly barrasHora = computed(() => {
+    const horas = this.porHora();
+    const maximo = Math.max(1, ...horas.map((h) => h.cantidad));
+    return horas.map((h) => ({ hora: h.hora, cantidad: h.cantidad, alto: (h.cantidad / maximo) * 100 }));
+  });
+
+  /** La hora con mas ordenes (null si no hubo ninguna). */
+  protected readonly horaPunta = computed(() => {
+    const horas = this.porHora();
+    const mayor = horas.reduce((a, b) => (b.cantidad > a.cantidad ? b : a), { hora: -1, cantidad: 0 });
+    return mayor.cantidad > 0 ? mayor : null;
+  });
+
   protected readonly barrasServicio = computed(() => {
     const lista = this.ranking();
     const maximo = Math.max(1, ...lista.map((r) => r.cantidadSolicitudes));
@@ -191,6 +224,11 @@ export class Reports implements OnInit {
         this.cargando.set(false);
       },
     });
+
+    this.service
+      .ordenesPorHora(this.periodo())
+      .pipe(catchError(() => of([] as OrdenesPorHora[])))
+      .subscribe((horas) => this.porHoraReport.set(horas ?? []));
 
     this.ordenesService.listar().subscribe({
       next: (ordenes) => this.ordenes.set(ordenes ?? []),
@@ -277,6 +315,9 @@ export class Reports implements OnInit {
         this.servicios().get(r.servicioId)?.codigo ?? '',
         r.cantidadSolicitudes,
       ]),
+      ['', '', ''],
+      ['Hora del día', 'Órdenes creadas', ''],
+      ...this.porHora().map((h) => [`${String(h.hora).padStart(2, '0')}:00`, h.cantidad, '']),
       ['', '', ''],
       ['Detalle de órdenes', '', ''],
       ['N°', 'Servicio', 'Estado', 'Creada', 'Asignada a'],
