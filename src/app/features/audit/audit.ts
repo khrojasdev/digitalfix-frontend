@@ -13,11 +13,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 
 import { AuthContextService } from '../../core/auth/auth-context.service';
 import { descargarCsv, fechaParaArchivo } from '../../core/util/exportar-csv';
-import { ESTADOS, NOMBRE_TIPO_EVENTO } from '../workorders/ordenes.service';
+import { NOMBRE_TIPO_EVENTO, TIPOS_DE_EVENTO } from '../workorders/ordenes.service';
 import { AuditoriaService, EventoAuditoria, FILTRO_AUDITORIA_VACIO, FiltroAuditoria } from './auditoria.service';
 import { UsuarioResumen, UsuariosService } from './usuarios.service';
 
@@ -52,6 +53,7 @@ export interface PersonaAuditoria {
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    RouterLink,
   ],
   templateUrl: './audit.html',
 })
@@ -59,10 +61,11 @@ export class Audit implements OnInit {
   private readonly service = inject(AuditoriaService);
   private readonly usuarios = inject(UsuariosService);
   private readonly authContext = inject(AuthContextService);
+  private readonly ruta = inject(ActivatedRoute);
 
-  protected readonly tipos = ESTADOS;
+  protected readonly tipos = TIPOS_DE_EVENTO;
   protected readonly nombreTipo: Record<string, string | undefined> = NOMBRE_TIPO_EVENTO;
-  protected readonly columnas = ['fecha', 'tipoEvento', 'ordenId', 'autorId', 'correlacionId'];
+  protected readonly columnas = ['fecha', 'tipoEvento', 'ordenId', 'autorId', 'detalle', 'correlacionId'];
 
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -94,10 +97,15 @@ export class Audit implements OnInit {
   protected readonly hay = computed(() => this.eventos().length > 0);
   protected readonly filtrando = computed(() => {
     const f = this.filtro();
-    return !!(f.tipoEvento || f.autorId || f.desde || f.hasta);
+    return !!(f.tipoEvento || f.ordenId || f.autorId || f.desde || f.hasta);
   });
 
   ngOnInit(): void {
+    // Desde el detalle de una orden se llega con ?ordenId=N: su timeline.
+    const orden = this.ruta.snapshot.queryParamMap.get('ordenId');
+    if (orden && /^\d+$/.test(orden)) {
+      this.actualizarFiltro({ ordenId: orden });
+    }
     this.authContext.profile$.pipe(take(1)).subscribe((perfil) => {
       if (!perfil?.oid) return;
       this.miOid.set(perfil.oid);
@@ -223,10 +231,10 @@ export class Audit implements OnInit {
   protected exportar(): void {
     descargarCsv(
       `auditoria-${fechaParaArchivo()}.csv`,
-      ['Fecha', 'Evento', 'Orden', 'Autor', 'Correo', 'Autor (oid)', 'Correlación', 'Clave de evento'],
+      ['Fecha', 'Evento', 'Orden', 'Autor', 'Correo', 'Autor (oid)', 'Detalle', 'Correlación', 'Clave de evento'],
       this.eventos().map((e) => {
         const p = e.autorId ? this.personas().get(e.autorId) : null;
-        return [e.fecha, e.tipoEvento, e.ordenId, p?.nombre ?? '', p?.email ?? '', e.autorId, e.correlacionId, e.eventKey];
+        return [e.fecha, e.tipoEvento, e.ordenId, p?.nombre ?? '', p?.email ?? '', e.autorId, e.detalle ?? '', e.correlacionId, e.eventKey];
       }),
     );
   }
