@@ -1,5 +1,5 @@
 import { Orden } from '../workorders/ordenes.service';
-import { Indicadores, Periodo, ServicioRanking } from './reportes.service';
+import { Indicadores, OrdenesPorHora, Periodo, ServicioRanking } from './reportes.service';
 
 const HORAS: Record<Periodo, number> = { '24h': 24, '7d': 24 * 7, '30d': 24 * 30 };
 
@@ -42,4 +42,14 @@ export function rankingDesdeOrdenes(ordenes: Orden[], limite = 5): ServicioRanki
     .map(([servicioId, cantidadSolicitudes]) => ({ servicioId, cantidadSolicitudes }))
     .sort((a, b) => b.cantidadSolicitudes - a.cantidadSolicitudes || a.servicioId - b.servicioId)
     .slice(0, limite);
+}
+
+/** Ordenes por hora del dia (0 a 23) calculadas desde las ordenes, en hora local. */
+export function porHoraDesdeOrdenes(ordenes: Orden[]): OrdenesPorHora[] {
+  const conteo = new Array<number>(24).fill(0);
+  for (const o of ordenes) {
+    const fecha = new Date(o.fechaCreacion ?? '');
+    if (!Number.isNaN(fecha.getTime())) conteo[fecha.getHours()]++;
+  }
+  return conteo.map((cantidad, hora) => ({ hora, cantidad }));
 }

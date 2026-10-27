@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
 import { Audit } from './audit';
 import { environment } from '../../../environments/environment';
@@ -176,5 +176,45 @@ describe('Audit', () => {
     expect(peticion.request.params.get('autorId')).toBe('oid-yo');
     expect(c.textoUsuario()).toBe('Kevin Henríquez (tú)');
     peticion.flush({ content: [], totalElements: 0 });
+  });
+});
+
+describe('Audit desde el detalle de una orden', () => {
+  const base = environment.apiUrl;
+
+  it('con ?ordenId=N filtra los eventos de esa orden y muestra su detalle', async () => {
+    await TestBed.configureTestingModule({
+      imports: [Audit],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        ...proveedoresMsalDePrueba(cuentaDePrueba(['ADMIN'])),
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({ ordenId: '9' }) } } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(Audit);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    const peticiones = http.match((r) => r.url === `${base}/api/audit/events` && r.params.get('size') !== '200');
+    const ultima = peticiones[peticiones.length - 1];
+    expect(ultima.request.params.get('ordenId')).toBe('9');
+    peticiones.forEach((p) =>
+      p.flush({
+        content: [{
+          id: 3, tipoEvento: 'ESTADO_CAMBIADO', ordenId: 9, autorId: 'oid-1', empresaId: 7, fecha: '2026-10-18T12:00:00',
+          correlacionId: 'c-1', eventKey: 'k3', detalle: 'Comentario: Voy en camino',
+        }],
+        totalElements: 1,
+      }),
+    );
+    http.match((r) => r.url === `${base}/api/audit/events`).forEach((r) => r.flush({ content: [], totalElements: 0 }));
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Comentario: Voy en camino');
+
+    http.match((r) => r.url.endsWith('/api/me')).forEach((r) => r.flush(null));
+    http.match((r) => r.url.includes('/api/usuarios/')).forEach((r) => r.flush(null, { status: 404, statusText: 'Not Found' }));
+    http.verify();
   });
 });

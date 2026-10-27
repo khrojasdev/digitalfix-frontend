@@ -40,7 +40,7 @@ export class LayoutComponent {
 
   // Roles: ADMIN, SUPERVISOR, CLIENTE, AUDITOR y TECNICO (personal de terreno).
   // Los roles salen de /api/me, no del token: ver AuthContextService.
-  readonly puedeVerPanel$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR']);
+  readonly puedeVerPanel$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR', 'AUDITOR', 'CLIENTE']);
   readonly puedeVerCatalogo$ = this.authContext.tieneAlguno$([
     'ADMIN',
     'SUPERVISOR',

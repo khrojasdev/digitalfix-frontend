@@ -4,7 +4,7 @@
       <span class="icono-pagina"><mat-icon>engineering</mat-icon></span>
       <div>
         <h1>Técnicos</h1>
-        <p class="subtitulo">Personal de terreno. Cada uno entra con el rol Técnico y el mismo correo que registras aquí.</p>
+        <p class="subtitulo">Personal de terreno. Quien entra con el rol Técnico del tenant aparece aquí solo, con los datos de su cuenta.</p>
       </div>
     </div>
     <div class="acciones-pagina">
@@ -75,7 +75,7 @@
               @if (t.cuentaVinculada) {
                 <span class="etiqueta etiqueta--activo" matTooltip="Ya entró con su cuenta y ve sus órdenes en Mis órdenes">Vinculada</span>
               } @else {
-                <span class="texto-suave" matTooltip="Se vincula sola cuando entre con el rol TECNICO y este mismo correo">Pendiente</span>
+                <span class="texto-suave" matTooltip="Se vincula sola la primera vez que entre con el rol Técnico y este mismo correo">Pendiente</span>
               }
             </td>
           </ng-container>

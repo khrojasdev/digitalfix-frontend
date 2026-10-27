@@ -1,0 +1,112 @@
+<section class="pagina">
+  <header class="encabezado-pagina">
+    <div class="titulo">
+      <span class="icono-pagina"><mat-icon>assignment</mat-icon></span>
+      <div>
+        <h1>Orden #{{ id() }}</h1>
+        <p class="subtitulo">
+          @if (orden(); as o) {
+            {{ nombreServicio() ?? 'Servicio #' + o.servicioId }}
+          } @else {
+            Detalle de la orden y su historial.
+          }
+        </p>
+      </div>
+    </div>
+    <div class="acciones-pagina">
+      @if (esTecnico$ | async) {
+        <a mat-stroked-button routerLink="/mis-ordenes"><mat-icon>arrow_back</mat-icon>Mis órdenes</a>
+      } @else {
+        <a mat-stroked-button routerLink="/workorders"><mat-icon>arrow_back</mat-icon>Órdenes</a>
+      }
+      @if (veAuditoria$ | async) {
+        <a mat-stroked-button routerLink="/audit" [queryParams]="{ ordenId: id() }"><mat-icon>fact_check</mat-icon>Ver en auditoría</a>
+      }
+      <button mat-stroked-button type="button" (click)="cargar()" [disabled]="cargando()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  @if (cargando() || trabajando()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando la orden"></mat-progress-bar>
+  }
+  @if (error()) {
+    <div class="mensaje mensaje--error" role="alert"><mat-icon>error_outline</mat-icon>{{ error() }}</div>
+  }
+
+  @if (orden(); as o) {
+    <section class="rejilla-detalle">
+      <article class="tarjeta bloque">
+        <h2 class="tarjeta-titulo">Datos de la orden</h2>
+        <dl class="datos">
+          <dt>Estado</dt>
+          <dd><span class="etiqueta etiqueta--{{ o.estado }}">{{ nombreEstado[o.estado] ?? o.estado }}</span></dd>
+          <dt>Servicio</dt>
+          <dd>{{ nombreServicio() ?? 'Servicio #' + o.servicioId }}</dd>
+          <dt>Técnico</dt>
+          <dd>{{ o.asignadoA || 'Sin asignar' }}</dd>
+          <dt>Creada</dt>
+          <dd>{{ o.fechaCreacion | date: 'dd-MM-yyyy HH:mm' }}</dd>
+          <dt>Última actualización</dt>
+          <dd>{{ o.fechaActualizacion ? (o.fechaActualizacion | date: 'dd-MM-yyyy HH:mm') : '—' }}</dd>
+          <dt>Detalle del cliente</dt>
+          <dd class="texto-largo">{{ o.comentarios || '—' }}</dd>
+        </dl>
+
+        <div class="acciones">
+          @if (gestiona$ | async) {
+            @if (puedeAsignar()) {
+              <button mat-flat-button type="button" (click)="asignar()" [disabled]="trabajando()">
+                <mat-icon>engineering</mat-icon>
+                {{ o.estado === 'ASIGNADA' ? 'Reasignar técnico' : 'Asignar técnico' }}
+              </button>
+            }
+            @for (destino of transiciones(); track destino) {
+              <button mat-stroked-button type="button" (click)="cambiarA(destino)" [disabled]="trabajando()">
+                <span class="etiqueta etiqueta--{{ destino }}">{{ nombreEstado[destino] }}</span>
+              </button>
+            }
+          } @else if (esTecnico$ | async) {
+            @if (pasoTecnico(); as paso) {
+              <button mat-flat-button type="button" (click)="cambiarA(paso.destino, paso.accion)" [disabled]="trabajando()">
+                <mat-icon>{{ paso.icono }}</mat-icon>
+                {{ paso.accion }}
+              </button>
+            }
+          }
+        </div>
+      </article>
+
+      <article class="tarjeta bloque">
+        <h2 class="tarjeta-titulo">Historial</h2>
+        @if (pasos().length === 0) {
+          <div class="vacio"><mat-icon>history</mat-icon><span>Sin movimientos registrados.</span></div>
+        } @else {
+          <ol class="linea-tiempo">
+            @for (p of pasos(); track $index) {
+              <li class="paso">
+                <span class="punto etiqueta--{{ p.estadoNuevo }}" aria-hidden="true"></span>
+                <div class="paso-cuerpo">
+                  <div class="paso-cabecera">
+                    <span class="etiqueta etiqueta--{{ p.estadoNuevo }}">{{ nombreEstado[p.estadoNuevo] ?? p.estadoNuevo }}</span>
+                    @if (p.estadoAnterior) {
+                      <span class="texto-suave">desde {{ nombreEstado[p.estadoAnterior] ?? p.estadoAnterior }}</span>
+                    }
+                  </div>
+                  <div class="texto-suave paso-quien">
+                    {{ p.fecha | date: 'dd-MM-yyyy HH:mm' }} · {{ p.autorNombre || 'Usuario del sistema' }}
+                  </div>
+                  @if (p.comentario) {
+                    <p class="paso-comentario">{{ p.comentario }}</p>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+        }
+      </article>
+    </section>
+  }
+</section>

@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 
 import { AuthContextService } from '../../core/auth/auth-context.service';
 import { CatalogoService } from '../catalog/catalogo.service';
@@ -42,6 +42,17 @@ export class Dashboard implements OnInit {
   private catalogo = inject(CatalogoService);
   private ordenesService = inject(OrdenesService);
   protected readonly authContext = inject(AuthContextService);
+
+  /**
+   * El CLIENTE ve un panel propio: el estado de sus ordenes (el backend ya le
+   * devuelve solo las suyas), sin stock ni catalogo. Los demas roles ven el
+   * panel de operacion de la empresa.
+   */
+  protected readonly soloCliente$ = this.authContext.roles$.pipe(
+    map((roles) => roles.includes('CLIENTE') && !roles.some((r) => ['ADMIN', 'SUPERVISOR', 'AUDITOR'].includes(r))),
+  );
+  /** Quien asigna: se le muestran las ordenes por asignar y las que estan en terreno. */
+  protected readonly gestiona$ = this.authContext.tieneAlguno$(['ADMIN', 'SUPERVISOR']);
 
   protected readonly nombreEstado: Record<string, string | undefined> = NOMBRE_ESTADO;
   protected readonly cargando = signal(false);
@@ -82,6 +93,22 @@ export class Dashboard implements OnInit {
     return ESTADOS.map((e, i) => ({ nombre: NOMBRE_ESTADO[e], valor: conteo[i], ancho: (conteo[i] / maximo) * 100, color: COLOR_ESTADO[e] }));
   });
 
+  /** Ordenes creadas que todavia no tienen tecnico: lo primero que mira el supervisor. */
+  protected readonly porAsignar = computed(() =>
+    (this.ordenes() ?? [])
+      .filter((o) => o.estado === 'CREADA')
+      .sort((a, b) => (a.fechaCreacion ?? '').localeCompare(b.fechaCreacion ?? ''))
+      .slice(0, 6),
+  );
+
+  /** Tecnicos en camino o trabajando. */
+  protected readonly enTerreno = computed(() =>
+    (this.ordenes() ?? [])
+      .filter((o) => o.estado === 'EN_DESPLAZAMIENTO' || o.estado === 'EN_EJECUCION')
+      .sort((a, b) => (b.fechaActualizacion ?? b.fechaCreacion ?? '').localeCompare(a.fechaActualizacion ?? a.fechaCreacion ?? ''))
+      .slice(0, 6),
+  );
+
   protected readonly recientes = computed(() =>
     [...(this.ordenes() ?? [])].sort((a, b) => (b.fechaCreacion ?? '').localeCompare(a.fechaCreacion ?? '')).slice(0, 5),
   );
@@ -98,13 +125,14 @@ export class Dashboard implements OnInit {
     // dados de baja, que es justo lo que no se ve en el listado por defecto.
     forkJoin({
       servicios: this.catalogo.listarServicios(0, 200, false),
-      repuestos: this.catalogo.listarRepuestos(0, 1),
-      criticos: this.catalogo.repuestosBajoMinimo(),
+      // Stock: si no se puede leer (por ejemplo, el rol no lo ve), el panel sigue.
+      repuestos: this.catalogo.listarRepuestos(0, 1).pipe(catchError(() => of(null))),
+      criticos: this.catalogo.repuestosBajoMinimo().pipe(catchError(() => of([]))),
       ordenes: this.ordenesService.listar().pipe(catchError(() => of(null))),
     }).subscribe({
       next: ({ servicios, repuestos, criticos, ordenes }) => {
         this.servicios.set(servicios.content);
-        this.totalRepuestos.set(repuestos.totalElements);
+        this.totalRepuestos.set(repuestos?.totalElements ?? 0);
         this.bajoMinimo.set(criticos);
         this.ordenes.set(ordenes);
         this.cargando.set(false);

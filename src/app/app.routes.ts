@@ -26,7 +26,8 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR'] },
+        // El CLIENTE tambien: ve el estado de sus propias ordenes.
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR', 'CLIENTE'] },
         loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
@@ -68,6 +69,16 @@ export const routes: Routes = [
         data: { roles: ['ADMIN', 'SUPERVISOR'] },
         loadComponent: () =>
           import('./features/workorders/tecnicos/tecnicos').then((m) => m.Tecnicos),
+      },
+      {
+        // Detalle de una orden con su historial. Va despues de
+        // workorders/tecnicos para que "tecnicos" no se tome como un id. El
+        // backend decide si esa orden en particular le corresponde a quien la pide.
+        path: 'workorders/:id',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AUDITOR', 'CLIENTE', 'TECNICO'] },
+        loadComponent: () =>
+          import('./features/workorders/orden-detalle/orden-detalle').then((m) => m.OrdenDetalle),
       },
       {
         path: 'reports',

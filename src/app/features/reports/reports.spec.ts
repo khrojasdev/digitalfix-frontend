@@ -30,6 +30,8 @@ describe('Reports', () => {
 
   afterEach(() => {
     http.match((r) => r.url.endsWith('/api/me')).forEach((r) => r.flush(null));
+    // Ordenes por hora se pide aparte; las pruebas que no lo miran lo responden vacio.
+    http.match((r) => r.url === `${base}/api/reports/orders-by-hour`).forEach((r) => r.flush([]));
     http.verify();
   });
 
@@ -151,6 +153,35 @@ describe('Reports', () => {
     expect(c.fuente()).toBe('report');
     expect(c.faltanEnReport()).toBe(1);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('registró 1 de 2 órdenes');
+  });
+
+  it('muestra las órdenes por hora del día que entrega ms-report', () => {
+    fixture.detectChanges();
+    const horas = Array.from({ length: 24 }, (_, hora) => ({ hora, cantidad: hora === 10 ? 4 : hora === 15 ? 2 : 0 }));
+    const pedido = http.expectOne((r) => r.url === `${base}/api/reports/orders-by-hour`);
+    expect(pedido.request.params.get('periodo')).toBe('24h');
+    pedido.flush(horas);
+    responder('24h');
+
+    const c = fixture.componentInstance as any;
+    expect(c.porHora()).toHaveLength(24);
+    expect(c.horaPunta()).toEqual({ hora: 10, cantidad: 4 });
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Órdenes por hora del día');
+  });
+
+  it('si ms-report no trae datos por hora, los calcula desde las órdenes', () => {
+    ordenes = [
+      { id: 1, servicioId: 5, estado: 'CREADA', asignadoA: null, comentarios: null, fechaCreacion: haceHoras(1), fechaActualizacion: null },
+      { id: 2, servicioId: 5, estado: 'CREADA', asignadoA: null, comentarios: null, fechaCreacion: haceHoras(1), fechaActualizacion: null },
+    ];
+    fixture.detectChanges();
+    http.expectOne((r) => r.url === `${base}/api/reports/orders-by-hour`).flush([]);
+    responder('24h');
+
+    const c = fixture.componentInstance as any;
+    const hora = new Date(Date.now() - 3_600_000).getHours();
+    expect(c.porHora()[hora].cantidad).toBe(2);
+    ordenes = [];
   });
 });
 

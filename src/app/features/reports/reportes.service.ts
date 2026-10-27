@@ -15,6 +15,12 @@ export interface ServicioRanking {
   cantidadSolicitudes: number;
 }
 
+/** Ordenes creadas en una hora del dia (0 a 23) dentro del periodo. */
+export interface OrdenesPorHora {
+  hora: number;
+  cantidad: number;
+}
+
 /** Periodos que acepta ms-digitalfix-report. */
 export type Periodo = '24h' | '7d' | '30d';
 
@@ -39,6 +45,12 @@ export class ReportesService {
   topServicios(periodo: Periodo = '24h'): Observable<ServicioRanking[]> {
     const params = new HttpParams().set('periodo', periodo);
     return this.api.get<ServicioRanking[]>('api/reports/top-services', params);
+  }
+
+  /** KPI del caso "ordenes por hora": las 24 horas del dia con su cantidad. */
+  ordenesPorHora(periodo: Periodo = '24h'): Observable<OrdenesPorHora[]> {
+    const params = new HttpParams().set('periodo', periodo);
+    return this.api.get<OrdenesPorHora[]>('api/reports/orders-by-hour', params);
   }
 }
 

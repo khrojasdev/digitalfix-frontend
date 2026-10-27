@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
@@ -31,6 +32,7 @@ export interface DatosAsignacion {
     MatDialogModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
@@ -65,6 +67,13 @@ export interface DatosAsignacion {
             }
           </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Comentario para el técnico (opcional)</mat-label>
+          <textarea matInput [formControl]="comentario" rows="3" maxlength="500"
+                    placeholder="Prioridad, acceso al lugar, materiales…"></textarea>
+          <mat-hint align="end">{{ comentario.value.length }}/500</mat-hint>
+        </mat-form-field>
       }
 
       @if (error()) {
@@ -78,7 +87,7 @@ export interface DatosAsignacion {
 
     <mat-dialog-actions align="end">
       <button mat-button type="button" mat-dialog-close [disabled]="guardando()">Cancelar</button>
-      <button mat-flat-button type="button" (click)="asignar()" [disabled]="guardando() || tecnico.invalid">
+      <button mat-flat-button type="button" (click)="asignar()" [disabled]="guardando() || tecnico.invalid || comentario.invalid">
         <mat-icon>engineering</mat-icon>
         {{ reasignando ? 'Reasignar' : 'Asignar' }}
       </button>
@@ -94,6 +103,7 @@ export class AsignarTecnicoDialog implements OnInit {
 
   protected readonly reasignando = this.datos.orden.estado === 'ASIGNADA';
   protected readonly tecnico = new FormControl<number | null>(null, Validators.required);
+  protected readonly comentario = new FormControl<string>('', { nonNullable: true, validators: Validators.maxLength(500) });
 
   protected readonly lista = signal<Tecnico[]>([]);
   protected readonly cargando = signal(true);
@@ -126,7 +136,7 @@ export class AsignarTecnicoDialog implements OnInit {
     if (id == null) return;
     this.guardando.set(true);
     this.error.set(null);
-    this.ordenes.asignarTecnico(this.datos.orden.id, id).subscribe({
+    this.ordenes.asignarTecnico(this.datos.orden.id, id, this.comentario.value).subscribe({
       next: (orden) => this.ref.close(orden),
       error: (e: unknown) => {
         this.error.set(mensajeOrdenes(e, 'asignar el técnico'));

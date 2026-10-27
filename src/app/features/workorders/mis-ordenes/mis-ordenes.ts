@@ -4,7 +4,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 
 import { CatalogoService } from '../../catalog/catalogo.service';
@@ -18,6 +20,7 @@ import {
   pasoDelTecnico,
 } from '../ordenes.service';
 import { Tecnico } from '../tecnicos/tecnicos.service';
+import { CambioConfirmado, CambioEstadoDialog, DatosCambioEstado } from '../cambio-estado.dialog';
 
 type Vista = 'pendientes' | 'todas';
 
@@ -29,7 +32,7 @@ type Vista = 'pendientes' | 'todas';
 @Component({
   selector: 'app-mis-ordenes',
   standalone: true,
-  imports: [DatePipe, MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressBarModule],
+  imports: [DatePipe, MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressBarModule, RouterLink],
   templateUrl: './mis-ordenes.html',
   styleUrl: './mis-ordenes.scss',
 })
@@ -37,6 +40,7 @@ export class MisOrdenes implements OnInit {
   private readonly service = inject(OrdenesService);
   private readonly catalogo = inject(CatalogoService);
   private readonly aviso = inject(MatSnackBar);
+  private readonly dialogo = inject(MatDialog);
 
   protected readonly nombreEstado: Record<string, string | undefined> = NOMBRE_ESTADO;
   protected readonly pasoDelTecnico = pasoDelTecnico;
@@ -86,11 +90,24 @@ export class MisOrdenes implements OnInit {
     return this.servicios().get(id)?.nombre ?? `Servicio #${id}`;
   }
 
-  protected avanzar(orden: Orden): void {
+  /** Pide un comentario opcional (que hizo, que falta) y avanza la orden. */
+  protected pedirComentario(orden: Orden): void {
+    const paso = pasoDelTecnico(orden.estado);
+    if (!paso) return;
+    const ref = this.dialogo.open<CambioEstadoDialog, DatosCambioEstado, CambioConfirmado>(CambioEstadoDialog, {
+      data: { ordenId: orden.id, destino: paso.destino, accion: paso.accion },
+      autoFocus: 'first-tabbable',
+    });
+    ref.afterClosed().subscribe((confirmado) => {
+      if (confirmado) this.avanzar(orden, confirmado.comentario);
+    });
+  }
+
+  protected avanzar(orden: Orden, comentario?: string | null): void {
     const paso = pasoDelTecnico(orden.estado);
     if (!paso) return;
     this.cambiando.set(orden.id);
-    this.service.cambiarEstado(orden.id, paso.destino).subscribe({
+    this.service.cambiarEstado(orden.id, paso.destino, comentario).subscribe({
       next: (actualizada) => {
         this.ordenes.update((lista) => lista.map((o) => (o.id === actualizada.id ? actualizada : o)));
         this.cambiando.set(null);

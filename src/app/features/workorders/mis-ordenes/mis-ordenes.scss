@@ -24,6 +24,11 @@
 .numero {
   font-weight: 700;
   color: var(--df-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .orden-servicio {
@@ -51,4 +56,8 @@
 
 .vacio {
   margin-bottom: 16px;
+}
+
+.orden-historial {
+  align-self: flex-start;
 }

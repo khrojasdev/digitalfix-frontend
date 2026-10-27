@@ -119,6 +119,24 @@
     </section>
 
     <section class="tarjeta panel">
+      <h2 class="tarjeta-titulo">
+        Órdenes por hora del día
+        @if (horaPunta(); as punta) {
+          <span class="texto-suave hora-punta">más demanda: {{ punta.hora }}:00 a {{ punta.hora }}:59 ({{ punta.cantidad }})</span>
+        }
+      </h2>
+      <div class="por-hora" role="img" [attr.aria-label]="'Órdenes por hora del día en ' + nombrePeriodo()">
+        @for (b of barrasHora(); track b.hora) {
+          <div class="hora" [title]="b.hora + ':00 — ' + b.cantidad + ' órdenes'">
+            <span class="hora-valor">{{ b.cantidad || '' }}</span>
+            <div class="hora-pista"><div class="hora-barra" [style.height.%]="b.alto"></div></div>
+            <span class="hora-etiqueta">{{ b.hora % 3 === 0 ? b.hora : '' }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="tarjeta panel">
       <div class="encabezado-tarjeta">
         <h2 class="tarjeta-titulo">
           Órdenes del período
